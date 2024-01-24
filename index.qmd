@@ -1,0 +1,7 @@
+# Preface {.unnumbered}
+
+These notes are to be used for MATH 6627: Practicum in Statistical Consulting 
+
+```{r}
+print("Make sure you install R!")
+```

@@ -1,0 +1,25 @@
+project:
+  type: book
+
+book:
+  title: "Notes for MATH 6627: Statistical Consulting Practicum"
+  author: "Kelly Ramsay"
+  date: "2024-01-23"
+  chapters:
+    - index.qmd
+    - mixed_models.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    include-in-header:
+      - file: latex_header.tex
+    documentclass: scrreprt
+
+editor: visual
+

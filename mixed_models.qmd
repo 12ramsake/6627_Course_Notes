@@ -1,0 +1,1996 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# Mixed Models {#sec-mm}
+
+## Clustered data
+
+### Review of multiple linear regression {#sec-mlr}
+
+Recall the multiple linear regression model:
+
+For the model $Y|X=X\beta+\epsilon$, we have
+
+-   $Y\in \mathbb{R}^n$ is the response variable (a continuous random
+    vector)
+
+-   $X\in \mathbb{R}^{n\times p}$ is the covariate matrix (Note that the
+    first column is often $1_n$ -- the column vector of ones)
+
+-   $X_i\in \mathbb{R}^p$ is the $i^{th}$ observed explanatory variable
+    $(i=1, \ldots, n)$ (not a random variable, in the sense that we
+    condition on it)
+
+-   $\beta\in \mathbb{R}^{p\times 1}$ is the coefficient vector
+
+-   $\epsilon\in\mathbb{R}^n$ is the random error (continuous random
+    variable)
+
+The key assumptions of the (normal) MLR are that
+
+-   $\epsilon$ is multivariate normally distributed
+
+-   $E(\epsilon)=0$
+
+-   $Cov(\epsilon)=\sigma^2 I_n$
+
+-   $Y|X=X\beta+\epsilon$
+
+As such, it is critical that when applying MLR models, the observations
+are *independent*. However, there are many, many problems where the data
+contains dependent observations. If we have data that can be split into
+mutually independent clusters, then we call this *clustered data*.
+
+### An example
+
+Consider the following simple example:
+
+Suppose a study wishes to prove/disprove the following: **Does Ozempic
+cause sustained weight loss over time?**
+
+What type of data would we need to answer this question? We might start
+with the question: Can we collect data that would allow us to answer
+this question with a MLR model?
+
+Could we:
+
+-   Take a sample of individuals on Ozempic and measure their weight? --
+    **No***.* How do we determine if their weight has decreased since
+    starting it?
+
+-   Take a sample of individuals both on and not on Ozempic at a point
+    in time, and compare their weights? -- **No**. How can we rule out
+    the fact that these are different populations?
+
+It seems that this question could not be reliably answered using the
+above suggested methods. We would **need** to be able to follow
+individuals, starting when they begin Ozempic, recording their weights,
+and continue following them for a period of time. We might have data
+that looks like:
+
+| Month 1 | Month 2 | Month 3 | Month 4 | ... |
+|---------|---------|---------|---------|-----|
+| 360     | 355     | 350     | 340     | ... |
+| 225     | 222     | 224     | 225     | ... |
+| 288     | 270     | 253     | 260     | ... |
+
+We could simply compare the weights in month 1 to the last month
+measured, and apply a one-sample t-test. What if the patients lose
+weight in the first 6 months and then gain it back? This would not be
+captured by such a model. We could run one t-test for each month, but of
+course then the type-1 error would be very large.
+
+It is better to model the weights of patients on Ozempic over time.
+Inspired by the Normal MLR model, we might posit that patient $i$s
+weight at time $j$ is governed by the following equation:
+
+$$Y_{ij}=\beta_0+\beta_{1}t_j+\epsilon_{ij}.$$ with
+$\epsilon_{ij}\sim\mathcal{N}(0,\sigma^2)$. Now, if we want to apply the
+Normal MLR model, we would need to assume
+$\epsilon_{ij}\perp\epsilon_{\ell k}$ when $ij\neq\ell k$ . Is this
+reasonable? This would implies that \$Y\_{ij}\\perp Y\_{ij+1}\$\$, i.e.,
+a patients weight in month $j$ is independent of their weight in month
+$j+1$. This is, of course unreasonable. However, it would be reasonable
+to assume that \$Y\_{ij}\\perp Y\_{\\ell k}\$\$ when $\ell\neq i$. This
+is an example of **clustered data**. Here the clusters are the patients.
+
+-   It is safe to assume that a patient's weight at a given time is
+    unrelated to another patient's weight at any given time
+
+-   However, a patients weight a given time is related to their past and
+    future weights; the within patient weights are dependent.
+
+Therefore, a better assumption might be that the
+$$Y_{ij}=\beta_{0i}+\beta_{1}t_j+\epsilon_{ij}.$$
+
+where $\beta_{0i}$ are now **random variables,** where there exists one
+per patient. The coefficients contain the dependence, and allow us to
+model $Cov(\epsilon)=\sigma^2 I$. This is one way to model the
+within-patient dependence between patients.
+
+::: {#exm-EXAMPLEID}
+Testing this theory...
+
+Simplify the correlation between $Y_{ik}$ and $Y_{ij}$ in this model,
+and the Normal MLR. Compare the results.
+:::
+
+::: {.callout .solution collapse="true"}
+Solution:
+
+Not provided yet
+:::
+
+The above example is an example of a longitudinal study, which is a
+sub-type of the more general clustered data. A longitudinal study is a
+research study in which subjects are followed over time. Typically this
+involves repeated measurements of the same variables. Longitudinal
+studies differ from cross-sectional studies and time series studies.
+
+Longitudinal studies are useful for
+
+-   To detect changes in outcomes, both at the population and individual
+    level.
+
+-   **Longitudinal effects** as compared to cohort effects/cross
+    sectional effects.
+
+-   Correctly ascertain the exposures.
+
+-   Understand different sources of variation
+
+-   Between- and within-subject variation.
+
+-   To detect **time effects**, both directly and as interactions with
+    other relevant factors.
+
+One example of this type of data, which we will see later is the TLC
+trial data:
+
+```{r}
+
+########################################################
+TLC <- read.csv("data/TLC.csv",stringsAsFactors = T)
+head(TLC)
+```
+
+As mentioned, a longitudinal study is one example of clustered data.
+Clustered data refers to data that can be divided into clusters, such
+that data within a given cluster are correlated. For longitudinal
+observations, observations taken from the same subject at different time
+points are correlated because they belong to the same subject. In
+general, real world data have a complex dependence structure - can often
+be fit into this clustered framework.
+
+### What is a mixed model?
+
+A **mixed model** is a convenient modelling framework which can be used
+to model complex dependency structure within a data set. They are an
+extension of the familiar Normal MLR model, where the independent errors
+assumption is relaxed. In order to relax that assumption, a new concept
+is introduced: the **random effect**.
+
+In a mixed effect model, the effects of each of the covariates can be
+split into two categories: fixed and random effects. Deciding on what is
+a fixed effect and what is a random effect can be difficult: see [this
+post by Andrew
+Gelman](https://statmodeling.stat.columbia.edu/2005/01/25/why_i_dont_use/).
+We can use the following guidance, but ultimately, your model should
+reflect the assumptions that are reasonable to make about the data at
+hand, and answer the inferences we would like to make.
+
+When we model a fixed effect, we model the average across the whole
+population.
+
+<div>
+
+A clinical trial is set up to compare a new drug with a standard drug.
+The drug effect is of interest in the trial. We propose a Normal MLR (or
+fixed-effects) model with "drug" and "gender" as the two-fixed effects
+factors. Each has finite levels: "drug" -- "new drug" and "standard
+drug"; "gender" -- "female","male", "non-binary".
+
+</div>
+
+On the other hand, when we model a covariate as a random effect, we are
+modelling the average effect of that covariate as well as how that
+effect might vary between clusters.
+
+For instance, in the above example, modelling the intercept as a random
+effect allows us to estimate the average "regression line" for the
+population taking Ozempic, as well as how that "regression line" varies
+from person to person.
+
+One way to decide on whether an effect is a fixed or random effect is to
+ask if the observations for that covariate contain the complete set of
+levels we are interested in for a given covariate.
+
+<div>
+
+In a clinical trial, we think of the hospitals in the study as a sample
+from a larger population of hospitals. In each of the selected
+hospitals, a drug is compared with a placebo. The model is mixed-effects
+model with "drug" as fixed-effect factor (two levels) and a random
+intercept, which varies by hospital.
+
+</div>
+
+Here, the data can be clustered by hospital. The drug is a fixed effect,
+as we have observed the complete set of levels we are interested in for
+it. On the other hand, we would like our analysis to generalize beyond
+the selected hospitals, and so we consider the hospital as a random
+effect.
+
+<div>
+
+Example:
+
+The efficiency an antibiotic still has after it has been stored for two
+years is of scientific interest. Eight batches of the drug are selected
+at random from a population of available batches. From each batch, we
+take a sample of size two.The goal of the analysis: Estimate the overall
+mean concentration. Does the random batch have a significant effect on
+the variability of the responses?
+
+| batch | r1    | r2    |
+|-------|-------|-------|
+| 1     | 40.00 | 42.00 |
+| 2     | 33.00 | 34.00 |
+| 3     | 46.00 | 47.00 |
+| 4     | 55.00 | 52.00 |
+| 5     | 63.00 | 59.00 |
+| 6     | 35.00 | 38.00 |
+| 7     | 56.00 | 56.00 |
+| 8     | 34.00 | 29.00 |
+
+Since the batches are drawn randomly from a larger population, we could
+model the batch effect as a random effect. Obviously, the within batch
+observations will be correlated. The data are clustered by batch.
+Suppose instead that only eight batches exist in the whole world, and we
+are interested in knowing whether the batch number has an effect on the
+response. Then, the batch becomes a fixed effect.
+
+</div>
+
+<div>
+
+Example:
+
+Recall from last class that the client wanted us to assess the level of
+active ingredient in their tablets, as well as assess the variability in
+that can be attributed to the sampling technique.
+
+|     | METHOD | LOCATION | REPLICATE | ASSAY |
+|-----|--------|----------|-----------|-------|
+| 1   | Intm   | 1        | 1         | 34.38 |
+| 2   | Intm   | 1        | 2         | 34.87 |
+| 3   | Intm   | 1        | 3         | 35.71 |
+| 4   | Intm   | 2        | 1         | 35.31 |
+| 5   | Intm   | 2        | 2         | 37.59 |
+| 6   | Intm   | 2        | 3         | 38.02 |
+
+| Number | methdb | drum | tablet | yb    |
+|--------|--------|------|--------|-------|
+| 1      | Tablet | 1    | 1      | 35.77 |
+| 2      | Tablet | 1    | 2      | 39.44 |
+| 3      | Tablet | 1    | 3      | 36.43 |
+| 4      | Tablet | 5    | 1      | 35.71 |
+| 5      | Tablet | 5    | 2      | 37.08 |
+| 6      | Tablet | 5    | 3      | 36.54 |
+
+What are the clusters? What might be a random effect?
+
+</div>
+
+### Additional challenges in mixed models
+
+Often, clustered data is accompanied by other, additional challenges.
+
+-   Missing data or dropouts
+-   Measurement errors
+-   Censoring
+-   Outliers
+
+<div>
+
+Example -- Blood pressure
+
+A researcher wishes to evaluate a treatment for reducing high blood
+pressure. Blood pressures of each subject in the study are measured
+before and after the treatment. The researcher is also interested in how
+blood pressures of the subjects change over time after the treatment, so
+blood pressure is also measured after treatment once a month for 5
+months. What is the model we could use here? What are some potential
+challenges associated with this data?
+
+One answer: The random effect is the intercept: each of the individual's
+mean blood pressure will be different. The data contain missing values,
+e.g., drop out. Blood pressure has measurement error -- often repeatedly
+measured. Outliers, unusual or mistakes.
+
+</div>
+
+<div>
+
+Example -- Mental distress
+
+Investigate changes in subjects' mental distress over time in a
+treatment group and a control group. Mental distress in 239 subjects
+were measured at baseline, 4, 12, 24, and 60 months, based on their
+answers to questionnaires. Subjects randomly assigned into two groups: a
+treatment and a control group. The Global Severity Index (GSI) is used
+to measure subjects' distress levels. Other variables such as education,
+annual income, depression, anxiety, etc. were collected
+
+![MD1](Plots/mental_d_1.PNG){width="80%"}
+![MD2](Plots/mental_d_2.PNG){width="80%"}
+![MD3](Plots/mental_d_3.PNG){width="80%"}
+
+What are some potential issues for analysis?
+
+Substantial individual variability, Missing data, Outliers, Measurement
+error? GSI influenced by short-term emotional state
+
+</div>
+
+<div>
+
+Example -- AIDS Study
+
+-   AIDS study designed to evaluate an anti-HIV treatment, 53 HIV
+    infected patients were treated with an antiviral regimen. Viral load
+    (RNA) was repeatedly quantified on days 0, 2, 7, 10, 14, 21, and 28,
+    and weeks 8, 12, 24, and 48 after initiation of the treatment.
+    Immunologic markers known as CD4 and CD8 cell counts were also
+    measured along with viral load, as well as some other variables.
+    Viral load has a lower detection limit of 100, i.e., viral loads
+    below 100 are not quantifiable.
+
+![AD1](Plots/aids_1.PNG){width="80%"}
+
+![AD2](Plots/aids_2.PNG){width="80%"}
+
+![AD3](Plots/aids_3.PNG){width="80%"}
+
+![AD4](Plots/aids_4.PNG){width="80%"}
+
+Other information about this data is given by:
+
+-   \`\`HIV viral dynamic models model viral load trajectories during an
+    anti-HIV treatment''
+-   \`\`In an HIV viral dynamic model, the relationship between viral
+    load and viral dynamic parameters is often nonlinear, and the viral
+    dynamic parameters often vary substantially across patients.''
+-   Thus, nonlinear mixed effect models
+-   AIDS researchers are also interested in the relationship between
+    viral loads and CD4 counts over time
+-   \`\`CD4 counts are known to be measured with substantial errors, and
+    patients often drop out because of drug side effects or other
+    problems.''
+
+What are some potential issues with this dataset?
+
+-   different measurement times across patients
+-   different numbers of within-individual measurements across patients\
+-   large variation between patients
+-   large variation in the data within each patient
+-   some patients dropping out of the study
+-   some viral loads being censored (i.e., below the limit of detection)
+-   substantial measurement errors in the data
+-   complex long-term trajectories\
+-   data being missing at measurement times
+
+</div>
+
+### Other notes:
+
+Multilevel models: Multilevel models/Hierarchical linear models/Nested
+data models: Statistical models for "nested clusters". They contain
+parameters that vary at more than one level. An example could be a model
+of student performance, where the data are collected from students from
+multiple classes from multiple schools.
+
+Other model classes: Marginal models/GEE models -- Mean and the
+correlation (covariance) structure are modeled separately. Does not
+require distributional assumptions (see Chp 10 in the associated text)
+Transitional models -- Within-individual correlation is modeled via
+Markov structures.
+
+### Homework questions
+
+-   Give an example of a study where a mixed effect model would apply,
+    which effects are random and which are fixed?
+-   Describe the potential differences between a random and fixed
+    effect. Summarize why it is challenging to define a random effect.
+-   Write down why clustered data are challenging to analyse?
+
+## Analysing clustered data with mixed models
+
+### Regression and general data modelling review
+
+By the end of this section, we will have covered all steps involved in
+analyzing data using mixed models:
+
+```{mermaid}
+flowchart LR
+  A[Exploratory analysis] --> B[Model specification]
+  B --> C{Estimation}
+  C --> D[Inference]
+  D --> E[Diagnostic plots]
+  E --> B
+  E --> F[Sensitivity testing]
+```
+
+<div>
+
+How do you do each of these steps in a simple linear regression model?
+
+</div>
+
+Suppose $Y_i$ are continuous and we want to model $E[Y_i |X_i ]$. A
+linear regression models takes $$E[Y_i |X_i ] = X_i'\beta.$$ We take
+$\hat\beta = (X'X)^{-1}X'Y$, and call these ordinary least squares (OLS)
+estimators. If $Y_i |X_i \sim N(X_i'\beta,\sigma^2),$ then the OLS
+estimators are the maximum likelihood estimators.
+
+If we take $Y_i = X_i'\beta + \epsilon_i$ , where $X_i$ is non-normal,
+then the OLS estimators minimize the MSE of any predictor:
+$$\phi(\beta)=\frac{1}{n}\sum_{i=1}^n ||\beta-E[Y_i |X_i ] ||^2$$ is
+minimized at $\hat\beta$.
+
+In this case, as discussed in Section @sec-mlr, we assume that: 1. The
+conditional mean is linear (in parameters). 2. All values of $Y_i$ have
+constant variance, denoted $\sigma^2$ (conditionally). 3. The $Y_i$ are
+independent.
+
+Then, one can show that $\hat\beta$ is asymptotically normal with
+$Var(\hat\beta)=\sigma^2 (X'X)^{-1}$. We then use this fact to construct
+confidence intervals, hypothesis tests etc. We later analyze the
+residuals to diagnose any problems with the fit. Overall, linear
+Regression allows us to estimate a functional form for the conditional
+mean of a continuous outcome. The ordinary least-squares estimators are
+valid MLE-type estimators when normality is assumed, and are
+least-squares estimators otherwise. The asymptotic analysis is valid in
+large samples, regardless of distributional assumptions. We would now
+derive equivalents for the mixed model.
+
+### Defining the linear mixed model
+
+Back to analyzing clustered data. Let's start with longitudinal data.
+![goal](Plots/goal.PNG){width="80%"}
+
+-   $Y_{ij}$ response of subject $i$ at $j$th time point for $i\in[n]$
+    and $j\in[J_i]$.
+
+-   $X_{ijk}$ covariate $k$ of subject $i$ at $j$th time point for
+    $k\in[K]$, $i\in[n]$ and $j\in[J_i]$.
+
+-    $X_{ij}$ covariate vector for subject $i$ at $j$th time point for
+    $i\in[n]$ and $j\in[J_i]$.
+
+-    $t_{ij}$ actual time for subject $i$ at time point $j$ for
+    $i\in[n]$ and $j\in[J_i]$.
+
+We can split the covariate matrix intro time-varying covariates $Z$ and
+constant covariates $W$. We have that $X=[W|Z].$ Each subject has $J_i$
+rows associated with it. Let $W_{i}$ be the $J_i\times p$ submatrix
+corresponding to the fixed covariates for subject $i$ and let $Z_i$ be
+the $J_i\times m$ submatrix corresponding to the time-varying covariates
+for subject $i$.
+
+Now, the goal is to fit a model for $E[Y_{ij} |X_{ij} , t_{ij} ]$ with
+interpretable parameters.
+
+To account for the correlation between subjects, we model the response
+as a vector $Y_i$, where
+$$Y_{i}=W_{i}\alpha+Z_{i}\beta_i+\epsilon_{ij},$$ where
+
+-   $\alpha$: Population level effects -- constant between subjects
+    $(p\times 1)$
+
+-   $\beta_i$: Patient-level heterogeneity -- varies between subjects
+    $(m\times 1)$
+
+-   $\epsilon_{ij}$: Individual measurement variation -- varies between
+    measurements (scalars)
+
+Note that in the mixed model, we assume: $\alpha$ is a fixed vector,
+$\beta_i$ is randomly drawn for each individual, $\epsilon_{ij}$ are
+also randomly drawn.
+
+We can then assume that $\beta_i\sim N(0,\Sigma_\beta)$,
+$\epsilon_{ij}\sim N(0,\sigma^2)$ with $\epsilon_{ij} \perp \beta_i$.
+
+Now, let's look at some properties of the model. Conditional on the
+random effects $$E[Y_i |\beta_i,Z_i,W_i ] = W_i\alpha + Z_i\beta_i$$ and
+$$Cov(Y_i |\beta_i,Z_i,W_i  ) = Cov(\epsilon_i|\beta_i,Z_i,W_i ) = \sigma^2 I.$$
+**Derive these.** If we consider the marginal distribution of $Y_i$ we
+find:
+$$E[Y_i|Z_i,W_i] = W_i\alpha \qquad \text{and}\qquad Cov(Y_i|Z_i,W_i) = Z_i\Sigma_\beta Z_i'+\sigma^2 I$$
+**Derive this.** Combining these results we find that, under this
+assumed model,
+$$Y_i|Z_i,W_i\sim N(W_i\alpha,Z_i\Sigma_\beta Z_i'+\sigma^2 I ).$$
+
+
+
+### Special cases 
+
+
+Before covering mixed models for other types of clustered data, we will cover some special cases of the above model. 
+The most basic mixed model is the random intercept model. 
+Let $\tilde{W}_i$ be the covariate matrix of fixed effects with the intercept column removed. 
+The resulting model is $$Y_{i}=\alpha_1\mathbb{1}_{J_i}+\tilde{W}_{i}\alpha+\beta_i\mathbb{1}_{J_i}+\epsilon_{i},$$ where $\beta_i\sim N(0,\sigma^2_\beta)$ and $\epsilon_{i}\sim N(0,\sigma^2 I_{J_i})$. For $\ell\neq j$, it follows that $$Corr(Y_{ij},Y_{i\ell})=\frac{\sigma^2_\beta}{\sigma^2_\beta+\sigma^2}.$$
+The variance is constant across time or clusters $Cov(Y_i|Z_i,W_i)=(\sigma^2_\beta+\sigma^2)I$
+**Derive these.**
+Observe that in this model, all subject level regression lines are parallel. This can be used when we suspect that the correlation is constant over time, and only the mean response is thought to vary between clusters.
+
+If instead, we would like the regression lines to vary in general between subjects, we can introduce slopes are random effects. This is the **random intercept and slope model.** 
+Here,
+$$
+Y_{i }=\alpha_0+\widetilde{W}_{i} \alpha+\beta_{0i}+\alpha_1t_{i}+\beta_{1i}t_{i}+\epsilon_{i }.
+$$
+**What is $Z_i$ here?** The within-subject correlation will be time dependent in this model automatically, in this model, we assume that $\beta_i=(\beta_{0i},\beta_{1i})'\sim N(0,\Sigma_\beta)$, where 
+$$
+\Sigma_\beta=\left(\begin{array}{cc}
+    \sigma^2_{\beta_0} &   \sigma_{\beta_0,\beta_1} \\
+     \sigma_{\beta_0,\beta_1}   &   \sigma^2_{\beta_1}
+\end{array}\right).
+$$
+
+ Now, let's understand some of the features of this model. For any $i\in[n]$, we have that $$Cov(Y_i|Z_i,W_i) = Z_i\Sigma_\beta Z_i'+\sigma^2 I=(1_{J_i}\ t_i)\Sigma_\beta(1_{J_i}\ t_i)'+\sigma^2 I.$$
+We see that the variance of the response is not constant across time. Further, for $\ell\neq j$: $$Cov(Y_{ij},Y_{i\ell})=\sigma^2_{\beta_0}+\sigma_{\beta_0,\beta_1}(t_{ij}+t_{i\ell})+\sigma^2_{\beta_1}t_{ij}t_{i\ell}+\sigma^2.$$
+In this model, the correlation between subject responses at different time points is varying.
+
+### Multi-level mixed models
+
+So far we have discussed single level mixed models, which do not admit a nested structure. In this way, there is a nested structure of clusters. For example, if we wanted to assess how a new way of teaching p-values affects statistical literacy, we could sample universities, then professors, then classes. Here, assuming professors teach multiple sections, we could assume that effects differ by university, by professor, and by class. 
+We could write a mixed effect model with 3 levels as 
+\begin{align*}
+Y_{ijk}&=W_{ijk}\alpha+Z_{i,jk}\beta_i+Z_{ij,k}\beta_{ij}+Z_{ijk}\beta_{ijk}+\epsilon_{ijk}\\
+&i\in[n],\ j\in[J_i],\ k\in [m_{ij}],\\
+&\beta_i\sim N(0,\Sigma_1),\ \beta_{ij}\sim N(0,\Sigma_2),\ \beta_{ijk}\sim N(0,\Sigma_1),\ \epsilon_{ijk}\sim N(0,\sigma^2 I).
+\end{align*}
+Note that the "," tells us which columns of the covariate matrix we are concerned with: $Z_{i,jk}$ denotes the covariates nested in the highest level, $Z_{ij,k}$ the second highest and $Z_{ijk}$ the inner-most level. For instance, with respect to the above example, $Z_{i,jk}$ would be the university level covariates. (Note that some books count the number of levels by the number of sources of random variation, which is 1+ the level definition used here.) In addition,  @Pinheiro2000 represents $\Sigma_1$ in form $\Sigma_1^{-1}/\sigma^2=\Delta'\Delta$, where $\Delta$ is a non-unique relative precision factor. 
+
+
+
+### Parameter estimation and inference
+
+Generally, parameters are estimated with either maximum likelihood or restricted maximum likelihood (REML). Recall that this model is parametric, we have assumed normality. Thus, we can write down the likelihood. Let $V_i=\var(Y_i)=Z_i\Sigma_\beta Z_i'+\sigma^2 I$. Then, the (familiar) asymptotic result for both the MLE and the REML estimates: 
+$$\widehat{\alpha} \dot{\sim} N\left(\alpha\ ,\left[\sum_{i=1}^n W_i^{\prime} V_i^{-1} W_i\right]^{-1}\right),$$
+    
+    
+where $\dot{\sim}$ denotes asymptotically distributed as. For more details on how to derive the estimates, see Mixed-effect models in S and S+ @Pinheiro2000.
+
+Restricted maximum likelihood is used because the MLE biases the variance estimates downward. In REML, we maximize $$\mathcal{L}(\Sigma_\beta,\sigma^2|y)=\int \mathcal{L}(\alpha,\Sigma_\beta,\sigma^2|y)d\alpha .$$
+This constitutes a uniform prior on $\alpha$. Note that REML estimates are not invariant under reparameterizations of the fixed effects -- changing the units of the covariates $W_i$ units changes the estimates. As a result, LRT are not valid for testings significance of fixed effects -- the restricted likelihoods cannot be compared to determine significance. 
+
+
+
+**Testing -- Fixed effects -- MLE:** When using the MLEs, we can use likelihood ratio tests to test significance of various parameters. The parameters for the covariances, denoted $\sigma_{\beta_k,\beta_\ell}$, will have some regularity concerns. Suppose we want to test whether a subset of the parameters are 0. Let $k=$\# df in alt - \# df in null. Recall that Wilks' Theorem gives $-2(\ell_1(\hat\theta)-\ell_0(\hat\theta))\sim \chi^2_{k}$, which can be used to conduct the test. 
+
+
+**Testing -- Random effects:** However, this does not apply to random effects. The variance parameters lie on the boundary of the parameter space, and so Wilks' Theorem does not apply! Instead, we can simulate the distribution of the LRT statistic under the null and use the simulated distribution to obtain our critical value. If you are using a software where this is not feasible, then you can use $\frac{1}{2} \chi^2_{\#\ RE\ Null}+\frac{1}{2} \chi^2_{\#\ RE\ ALT}$. 
+
+**Testing -- Fixed effects -- REML:** REML estimates are not invariant under reparameterizations of the fixed effects -- changing the units for the covariates $W_i$ changes the REML estimates. As a result, LRT are not valid for testing the significance of fixed effects -- the restricted likelihoods cannot be compared to determine significance. To test the fixed effects, we can use tests conditional on the variance parameters/RE parameters. In this case, we can perform marginal $t$-tests -- tests adding the parameter to the full model, or sequential $F$-tests -- a test that adds the variables sequentially in the order they enter the model. 
+
+
+**Confidence intervals -- Fixed effects -- REML:** Both REML and MLE give asymptotic normality of both $\hat\sigma$ and fixed effect estimates. This can be used to obtain confidence intervals. For the parameters contained in $\Sigma_\beta$, constructing confidence intervals can be more difficult because $\Sigma_\beta$ must be positive definite, which restricts the parameter space. In this case, we transform the parameters so that they are unconstrained, compute the confidence interval, and transform the interval back. See Section 2.4 in ``Mixed Models in S and S-plus'' for more details @Pinheiro2000. 
+
+### Individual effects
+
+One thing we may want to do is produce an estimate of $\beta_i$ for observation $i$. One may notice that $E[\beta_i|Y_i]=\Sigma_\beta Z_i' V_i^{-1} (Y_i-W_i\alpha)$. Wait, we either know or have estimates of all of the values on the right-hand side. BLUP: $\hat\beta_i=\hat\Sigma_\beta Z_i' \hat V_i^{-1} (Y_i-W_i\hat\alpha)$. Fitted values: $$\hat Y_i=W_i\hat\alpha+Z_i\hat\beta_i.$$
+
+Let's analyze $V_i$:
+
+\begin{align*}
+   V_i &= Z_i \Sigma_\beta Z_i' + \sigma^2 I \\
+   \implies V_i V_i^{-1} &= Z_i \Sigma_\beta Z_i'V_i^{-1} + \sigma^2 I V_i^{-1} \\
+   \implies I &= Z_i \Sigma_\beta Z_i'V_i^{-1} + \sigma^2 V_i^{-1}.
+\end{align*}
+
+Now, the same logic gives that 
+$$I=Z_i \hat\Sigma_\beta Z_i'V_i^{-1}+\hat\sigma^2 V_i^{-1}.$$
+We have
+\begin{align*}
+   \hat Y_i&=X_i\hat\alpha+Z_i\hat\beta_i\\
+  &= X_i\hat\alpha+Z_i(\hat\Sigma_\beta Z_i' \hat V_i^{-1} (Y_i-X_i\hat\alpha))\\
+   &=(I-\hat\Sigma_\beta Z_i' \hat V_i^{-1}) X_i\hat\alpha+Z_i\hat\Sigma_\beta Z_i' \hat V_i^{-1} Y_i\\
+   &=\hat\sigma^2 \hat V_i^{-1} X_i\hat\alpha+(I-\hat\sigma^2\hat V_i^{-1}) Y_i\\
+     &=\hat\sigma^2 \hat V_i^{-1} X_i\hat\alpha+Z_i\hat\Sigma_\beta Z_i'V_i^{-1} Y_i
+\end{align*}
+
+$$\hat Y_i=\hat\sigma^2 \hat V_i^{-1} X_i\hat\alpha+Z_i\hat\Sigma_\beta Z_i'V_i^{-1} Y_i.$$
+We have that:
+
+-     $\hat\sigma^2 I$ within subject variation
+-     $Z_i\hat\Sigma_\beta Z_i'$ between subject variation
+-     Higher within subject variation -- more weight to the population average
+
+### Exploratory analysis, checking assumptions and sensitivity testing
+
+**Exploratory analysis:** Prior to setting up our model, we would ideally conduct exploratory analysis. Here, we look for outliers, inconsistencies in the data, and try to ascertain the relationships between the provided variables. This will help inform the model we will choose. It is also helpful to check that the model results approximately mirror what we saw in the EDA, as a sanity check. Some tools you can use in EDA are: 
+
+- Descriptive statistics
+- xy plots -- may have to subsample 
+- Box plots by cluster variable
+- Cross-sectional plots
+
+**Diagnostic plots: ** These are used to check the fit of the model and check the assumptions. In a mixed model, we have independence and normality, and structure assumptions. This involves using graphics we are likely familiar with, such as qqplots. We may use:
+- Checking independence between residuals across time -- acf (may not be appropriate), variogram
+- We have independence and normality, and structure assumptions
+- Residuals vs. fitted values
+- qqplot of residuals/random effects for normality
+- Observed vs. fitted values 
+
+**Sensitivity testing:** In reality, there may be several models/frameworks with assumptions that could fit your data. For example, we may use a nonparametric method, a robust method, inclusion of different effects, use of different statistical tests. One thing you can do after performing a data analysis is to do the analysis under other models that may have been applied, and see if your results change. This helps support the conclusions made, and can reveal additional insights about your dataset. Be careful not to apply models whose assumptions are not reasonable for your data. 
+
+### Homework questions
+
+-   How would you analyse the TLC data discussed last class? What are
+    some statistical tests you might conduct?
+-   Write down the likelihood function under the random intercept model.
+
+
+
+## Case study: Batches of antibiotic and quality control
+
+```{r packages1}
+library(nlme)
+library(lme4)
+```
+### Case information:
+
+* After an antibiotic has been stored for two years, it is of scientific interest to know what concentration of active ingredient is.  
+* Eight batches of the drug are selected at random from a population of available batches. 
+* From each batch, we take a sample of size two.
+* The goal of the analysis: Determine (to estimate) the overall mean concentration. A further question is whether or not the random batch has a significant effect on the variability of the responses.
+
+
+From 8 batches of antibiotics, 2 samples are drawn. 
+
+| Batch    | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  |
+|----------|----|----|----|----|----|----|----|----|
+| Sample 1 | 40 | 33 | 46 | 55 | 63 | 35 | 56 | 34 |
+| Sample 2 | 42 | 34 | 47 | 52 | 59 | 38 | 56 | 29 |
+
+
+```{r load in data 4}
+batch=as.matrix(read.csv('data/batch.csv'))
+batch=t(batch)
+batch=unname(batch)
+batch=data.frame(cbind(1:8,batch))
+names(batch)=c("batch","r1","r2")
+batch$r1=as.double(batch$r1)
+batch$r2=as.double(batch$r2)
+batch
+```
+
+Overall mean: You can just take the sample mean here: the batches have an equal number of samples in each of the batches. 
+
+```{r}
+mean(c(batch$r1,batch$r2))
+summary(batch)
+```
+Graphically, the within batch variability is low relative to the between batch.
+```{r EDA 31}
+par(cex.lab=2,cex.axis=2,mfrow=c(1,1))
+plot(batch$batch,batch$r1,pch=21,bg=1,cex=2)
+points(batch$batch,batch$r2,pch=21,bg=1,cex=2)
+cor(batch$r1,batch$r2)
+```
+
+
+Okay what about a confidence intervals for the mean? What about whether or not the random batch has a significant effect on the variability of the responses? We need a model for this. 
+
+It appears that the within batch mean is not constant.  
+
+$$Y_{ij}=\mu+\beta_i+\epsilon_{ij},$$
+where for $i\in[8]$ and $j\in[2]$, we have
+
+* $Y_{ij}$: concentration
+* $\mu$: overall mean
+* $\beta_i$: effect of batch $i$, this effect is random!
+* $\epsilon_{ij}$ random error
+
+The assumptions are 
+
+* $\beta_i\sim N(0,\sigma^2_b)$ iid
+* $\epsilon_{ij}\sim N(0,\sigma^2)$ iid
+* $\beta_i$ is independent of $\epsilon_{ij}$
+
+Under these assumptions $E(Y_{ij})=\mu$ and 
+$$Var(Y_{ij})=\sigma^2+\sigma_b^2.$$
+
+In addition, we see that we capture the dependence structure: One can check that 
+
+* $Cov(Y_{i1},Y_{i2})=\sigma_b^2$
+* $Cov(Y_{i1},Y_{i'1})=0$
+
+Recall we are interested in whether or not the random batch has a significant effect on the variability of the responses. This means we would like to estimate $\sigma_b$ and test if it is negligible. 
+
+
+
+
+Let's estimate the parameters of this model. The relevant R package for GLMMS in R are ```nlme```, ```lme4``` and ```lmerTest```. Let's use REML to estimate our parameters. 
+
+```{r Estimation 2}
+#We need to reshape this data into long format!
+batch_long=reshape(batch, 
+                   varying=c('r1','r2'), 
+                   timevar = 'replicate',
+                   idvar = 'batch',
+                   times=c(1,2),
+                   direction = "long",sep = "")
+
+head(batch_long)
+
+#using other package
+# fit.lme<-lme4::lmer(r ~ 1 | batch, data=batch_long)
+# summary(fit.lme)
+
+#defaults to REML
+model=nlme::lme(
+  fixed= r~1,
+  random= r ~ 1 | batch, data=batch_long )
+summary(model)
+
+
+# lme4::confint.merMod(fit.lme)
+
+```
+
+Okay, between batch variance is huge. Let's test if its non-zero anyways. Recall that for REML estimates, the asymptotic distribution for the LRT is not the same as usual. In this case, under the null hypothesis, $Y_{ij}\sim N(\mu,\sigma^2)$. Thus, 
+
+```{r Testing 4}
+library(nlme)
+fe=nlme::fixed.effects(model)
+
+
+
+
+
+sigma_batch_est= nlme::getVarCov(model)
+sigma_batch_est
+
+
+
+sigma_est=model$sigma
+n=nrow(batch_long)
+n_sim=1000
+
+# simulated=replicate(n,rnorm(n_sim,fe[1],sigma_est))
+
+
+#Step 3
+simulated=t(replicate(n_sim,rnorm(n,fe[1],sigma_est)))
+
+
+
+# 1000 x 16
+dim(simulated)
+
+
+#Step 4
+#takes a sample y and computes the LRT for Y
+compute_lrt=function(y){
+  
+  
+  batch_copy=batch_long
+  batch_copy$r=y
+  
+  alt=lme(
+      fixed= r~1,
+      random= r ~ 1 | batch, data=batch_copy )
+  
+  null<-lm(r ~ 1 , data=batch_copy)
+  
+  test=anova(alt,null)$L.Ratio[2]
+  
+  
+  return(test)
+}
+
+ts=apply(simulated, 1, compute_lrt)
+
+
+
+#computing t hat
+fit_null<-lm(r ~ 1 , data=batch_long)
+observed=anova(model,fit_null)$L.Ratio[2]
+
+
+
+
+# pvalue=1-mean(observed>ts); pvalue
+pvalue=mean(observed<=ts); pvalue
+hist(ts,xlim=c(min(ts),22))
+abline(v=observed)
+observed
+
+```
+
+
+```{r GOF 8}
+
+plot(model)
+qqnorm(model, ~ residuals(.,type="pearson"))
+plot(ranef(model))
+plot(fixef(model))
+
+qqnorm(model, ~ ranef(.))
+plot(model, r ~ fitted(.),abline=c(0,1))
+```
+
+```{r Prediction 1}
+intervals(model)
+
+```
+
+
+Results summary: 
+
+- Quick summary: the mean is estimated to be 45, and we saw significant variation between batches. The batch mean concentration has standard deviation 11. 
+- More on the mean: The mean concentration is estimated to be 45, at least, we estimate that the mean concentration is not below 36 and does not exceed 54. 
+- Batch variability: The concentration varies significantly between batches. The standard deviation of the mean batch concentration is estimated to be 12, ranging from (6,19). This means we estimate that roughly 68\% of the batches have a mean concentration within 11 units of the overall mean (estimated to be 45) and 95\% are within 22 units of the overall mean.  
+
+## Case study:  Air Pollution
+
+
+```{r packages 1}
+library(nlme)
+library(lme4)
+```
+
+### Case information:  
+
+- Six Cities Air Pollution Data -- Data on lung growth along with assorted patient information
+- How much of lung size do age and height explain?
+
+Data Columns:
+* id: Patient ID 
+* ht: Patient height at the corresponding visit
+* age: Patient age
+* baseht: Patient height at the first visit
+* baseage: Patient age at the first visit
+* logfev1: The log of FEV1 measurement (outcome based on lung function)
+
+Data Info:   
+* https://content.sph.harvard.edu/fitzmaur/ala2e/
+* Applied LDA: Garrett Fitzmaurice, Nan Laird & James Ware
+* Dockery, D.W., Berkey, C.S., Ware, J.H., Speizer, F.E. and Ferris, B.G. (1983). Distribution of FVC and FEV1 in children 6 to 11 years old. American Review of Respiratory Disease, 128, 405-412.
+
+
+```{r load in data }
+air_pollution <- read.csv("data/air_pollution.csv")
+```
+
+Let's explore the data 
+
+
+```{r EDA 4}
+par(cex.lab=2,cex.axis=2,mfrow=c(1,1))
+
+head(air_pollution)
+summary(air_pollution)
+
+#Check for missing values
+colSums(is.na(air_pollution))
+
+
+unique(air_pollution$baseht)
+
+# Is it balanced?
+n=length(unique(air_pollution$id))
+typeof(air_pollution$id)
+barplot(table(as.factor(air_pollution$id)))
+
+
+```
+
+```{r EDA 23}
+
+plot(air_pollution[,-1])
+
+hist(air_pollution$baseage)
+hist(air_pollution$baseht)
+# hist(air_pollution$age)
+# hist(air_pollution$ht)
+
+#Hint: height has been shown to be linearly associated with logfev1 on log scale
+air_pollution$loght=log(air_pollution$ht)
+air_pollution$logbht=log(air_pollution$baseht)
+plot(air_pollution[,c('age','loght','logfev1')])
+
+par(mfrow=c(1,5))
+apply(air_pollution[,c('age','baseage','logbht','loght','logfev1')],2,boxplot)
+
+lattice::xyplot(logfev1~age, air_pollution, col = 'black', type = c('l', 'p'))
+
+
+
+
+# ids=sample(unique(air_pollution$id),10)
+# for(id in ids){
+#   rows=[air_pollution$id==id]
+#     
+#   lattice::xyplot(logfev1~age, air_pollution[sample(1:n,10),], col = 'black', type = c('l', 'p'))  
+# }
+
+# lattice::xyplot(logfev1~age, air_pollution[sample(1:n,10),], col = 'black', type = c('l', 'p'))
+
+```
+
+
+What can we conclude from this exploratory analysis? 
+
+### Specifying
+
+- Let $i$ index the individuals and $j$ index the $j$th age recorded for a given individual. 
+
+$$Y_{ij}=\mu+X_i\alpha+Z_i\beta_i+\epsilon_{ij},$$
+where for $i\in[299]$ and $j\in [J_i]$, we have
+
+Here,
+
+* $Z_i=(1 , age )$, $X_i=(1 , age , loght ...)$ 
+* Each observation has a random intercept and slope, which depends on their age. 
+
+
+
+Let's estimate the parameters of this model. Let's use REML to estimate our parameters. 
+
+```{r Estimation}
+
+
+
+
+#defaults to REML
+model <- lme(
+    fixed = logfev1 ~ age + log(ht) + baseage + log(baseht) ,
+    random =~age|id,
+    correlation = NULL, # Defaults to sigma^2 I 
+    method = 'REML',
+    data = air_pollution
+)
+summary(model)
+
+
+
+
+```
+
+Do we need the baseline fixed effects? Did the height and age they entered the study at effect the outcome?
+
+```{r Testing 2}
+#marginal
+summary(model)
+#conditional
+anova(model)
+
+#based on this, lets remove the base effects
+model=update(model,fixed= logfev1 ~ age+loght+baseage)
+summary(model)
+```
+
+
+Can the random slope be dropped?
+```{r Testing 22}
+
+model_null=update(model,random=logfev1 ~ 1|id)
+
+
+# summary(model)
+
+LRT=anova(model,model_null)$L[2] #; LRT
+
+
+simmed=nlme::simulate.lme(model_null,100,m2=model)
+sim_LRT=-2*(simmed$alt$REML[,2]-simmed$null$REML[,2])
+
+pval=1-mean(LRT>sim_LRT); print(''); print(pval)
+hist(sim_LRT)
+abline(v=LRT)
+anova(model,model_null)
+
+```
+
+
+
+```{r GOF 1}
+
+## ACF - Checks that errors are independent
+plot(ACF(model), alpha = 0.01, main = "ACF plot for independent errors.") # This looks problematic!
+# This may not be the best way to check the model fit though, since there are not evenly spaced errors...
+
+# Instead we can use a 'semi-Variogram'. 
+# This should fluctuate randomly around 1
+vg <- Variogram(model, form = ~age|id, resType = "pearson")
+plot(vg, sigma=1) ## Looks okay, honestly, not the best.
+
+# Residuals vs. Fitted (no patterns)
+plot(model, main = "Plot of residuals vs. fitted.")
+
+# QQPlot for normality of errors
+qqnorm(model, ~ residuals(., type="pearson")) # Some issues... probably
+
+# Plots for the Predicted (BLUPs)
+plot(ranef(model)) 
+qqnorm(model, ~ranef(.)) # These look okay!
+
+# Observed vs. Fitted
+plot(model, logfev1 ~ fitted(.), abline = c(0,1), main = "Observed vs. Fitted")
+plot(model, logfev1 ~ fitted(.)|id, abline = c(0,1), main = "Observed vs. Fitted (By Subject)")
+# Could also look (e.g.) by treatment, if it existed!
+
+### Intervals
+intervals(model)
+```
+
+```{r Prediction 2}
+intervals(model)
+
+### Predictions
+new_data <- data.frame(id = c(1, 25, 25, 25),
+                       age = c(18, 18, 18, 18),
+                       ht = c(1.54, 1.85, 1.7, 2),
+                       baseht = c(1.2, 1.32, 1.32, 1.32),
+                       baseage = c(9.3415, 8.0274, 8.0274, 8.0274),
+                       loght=log(c(1.54, 1.85, 1.7, 2)))
+
+# level specifies whether at the population [0] or subject [1] level
+predict(model, newdata = new_data, level = c(0,1))
+
+```
+
+
+Results summary: 
+
+- Age explains a significant amount of the variability of lung size - a one year increase in age is roughly equivalent to a `exp(0.023)` in lung size (fev1)
+- Height also explains lung size, we see that for every 10 cm, we have that lungs are  `exp(2.25*log(0.1))` (fev1) bigger
+- Population average lung size is `exp(-0.308090040)`
+- There is some evidence that the time at which the subject entered the study was predictive of their lung size. Investigate!
+- Seems like lungs stop growing at 16 - may be no need to study after that age?
+
+
+
+## Case study: Thieves
+
+```{r packages 2}
+library(nlme)
+library(lme4)
+library(ggplot2)
+
+```
+
+### Case information:  
+
+- Concentration Data -- Data on concentration of active ingredient in tablets and samples from blender
+- Recall: "Our main concern is that the amount of active ingredient is consistent in the X tablets. We would like you to analyse both samples to determine how much the active ingredient differs from tablet to tablet. We also want to compare the quality of the samples retrieved by the thieves to determine Which one is better?"
+
+Suppose we receive the following documentation: 
+
+Prescription and over-the-counter drugs contain a mixture of both active
+and inactive ingredients, with the dosage determined by the amount of
+active ingredient in each tablet. Making sure the tablets contain the correct
+dosage is an important problem in the drug manufacturing industry and in
+this case study, we consider an experiment conducted by a pharmaceutical
+company to investigate sampling variability and bias associated with the
+manufacture of a certain type of tablet.
+
+
+### Outline of the Problem
+
+Tablet Manufacture The tablets were manufactured by mixing the active and inactive ingredients in a "V-blender," so-named because it looks like a large V. (See Figure 8.1.) Mixing was achieved by rotating the V-blender in the vertical direction. After the mixture was thoroughly blended, the powder was discharged from the bottom of the V-blender and compressed into tablet form. 
+
+Uniform Content: The most important requirement of this manufacturing process was that the tablets have uniform content. That is, the correct amount of active ingredient must be present in each tablet. The content uniformity of the mixture within the V-blender will need to be assessed. Thief Sampling A "thief" instrument was used to obtain samples from different locations within the V-blender. This was essentially a long pole with a closed scoop at one end, which was plunged into the powder mixture by a mechanical device. At the appropriate depth for a given location, the scoop was opened and a sample collected. Considerable force was needed to insert a thief into the powder mixture and it was of interest to compare two types of thieves.
+
+
+- The Unit Dose thief collects three individual unit dose samples
+at each location.
+
+
+- The Intermediate Dose thief collects one large sample which is itself
+sampled to give three unit dose samples.
+
+### Experiment Procedure
+
+The objective of this experiment was to study bias and variability differences
+between the two thieves and to compare the thief-sampled results
+with those of the tablets. The experiment was implemented as follows.
+
+1. Blend the mixture in the V-blender for 20 minutes.
+2. Tie the thieves together and use them to obtain samples from six
+locations within the V-blender. A schematic of the V-blender and
+sampling locations is shown in Figure 8.1.
+3. Discharge the powder from the V-blender and compress it to form
+tablets. Load tablets into 30 drums.
+4. Select 10 drums and sample three tablets from each of these drums.
+5. Assay all samples to determine the amount of active ingredient in
+each sample. The specified assay value is: 35 mg/100 mg.
+
+
+
+
+The locations shown in Figure 8.1 represented the "desired" sampling positions
+for the thieves. In the actual experiment, these "fixed" positions
+were subject to a certain amount of variability. The samples collected by
+the thieves can be regarded as random within each location.
+
+
+In the Tablet experiment, the order in which the drums were filled was
+recorded and this information was incorporated into the random selection
+procedure. Specifically, one drum was randomly selected from each triple
+sequence: {1, 2, 3} { 4, 5, 6} . . . {28, 29, 30}. The factor DRUM could therefore
+be used to test for a "time" effect in the Tablet data.
+
+Data Columns:
+* method
+* location
+* replicate
+* assay/yb
+* drum
+
+
+Data Info:   
+* 8.1 in the text
+
+
+```{r load in data 3}
+thief=read.csv('data/thief.csv')
+tablet=read.csv('data/tablet.csv')
+```
+
+Let's explore the data 
+
+
+```{r EDA 22}
+par(cex.lab=2,cex.axis=2,mfrow=c(1,1))
+
+head(tablet)
+summary(tablet)
+head(thief)
+summary(thief)
+
+#Check for missing values
+colSums(is.na(thief))
+colSums(is.na(tablet))
+
+unique(tablet$methdb)
+
+```
+
+
+
+
+```{r EDA 3}
+
+tablet$drum=as.factor(tablet$drum)
+tablet$drum
+e <- ggplot(tablet, aes(x = drum, y=yb)) + geom_boxplot()
+e
+
+e <- ggplot(tablet, aes(x = drum, y=yb)) + geom_point()
+e
+
+boxplot(ASSAY ~ LOCATION, col=as.numeric(thief$METHOD),data=thief)
+boxplot(ASSAY ~ METHOD,data=thief)
+
+color=as.integer(as.factor(thief$METHOD))+1
+
+plot(thief$LOCATION ,thief$ASSAY,col=color,pch=22,bg=color)
+```
+
+
+What can we conclude from this exploratory analysis?
+
+Let's tackle the first question: how much does the active ingredient in the tablets vary?
+
+```{r Specification and estimation}
+
+
+names(tablet)[4]="con"
+model=lme(
+  fixed= con ~1,
+  random= con ~ 1 | drum, data=tablet )
+summary(model)
+
+
+
+```
+
+Okay, between drum sd is half the residual variance. Let's test if its non-zero. Recall that for REML estimates, the asymptotic distribution for the LRT is not the same as usual. In this case, under the null hypothesis, $Y_{ij}\sim N(\mu,\sigma^2)$. Thus, 
+
+```{r Testing 3}
+fe=nlme::fixed.effects(model)
+sigma_drum_est= nlme::getVarCov(model)
+sigma_est=model$sigma
+n=nrow(tablet)
+n_sim=500
+
+simulated=replicate(n,rnorm(n_sim,fe[1],sigma_est))
+# 100 x n
+dim(simulated)
+compute_lrt=function(y){
+  tablet_copy=tablet
+  tablet_copy$con=y
+  
+  alt=lme(
+      fixed= con~1,
+      random= con ~ 1 | drum, data=tablet_copy )
+  
+  null<-lm(con ~ 1 , data=tablet_copy)
+  
+  test=anova(alt,null)$L.Ratio[2]
+  return(test)
+}
+
+ts=apply(simulated, 1, compute_lrt)
+
+fit_null<-lm(con ~ 1 , data=tablet)
+observed=anova(model,fit_null)$L.Ratio[2]
+
+
+# ts
+
+pvalue=mean(observed<ts); pvalue
+hist(ts,xlim=c(min(ts),22))
+abline(v=observed)
+observed
+1-pchisq(observed,1)/2-(observed>0)/2
+anova(model,fit_null)
+
+#there is some evidence that the drum
+```
+
+
+```{r }
+hist(tablet$con)
+```
+
+```{r GOF 2}
+
+plot(model)
+qqnorm(model, ~ residuals(.,type="pearson"))
+plot(ranef(model))
+
+qqnorm(model, ~ ranef(.))
+plot(model, con ~ fitted(.),abline=c(0,1))
+
+fit_null<-lm(con ~ 1 , data=tablet)
+
+
+confint(fit_null)
+```
+
+
+Let's tackle the next question: which sampling method is better? -- which sampling method has a lower variability?
+```{r EDA 2}
+
+par(cex.lab=2,cex.axis=2,mfrow=c(1,1))
+boxplot(ASSAY~METHOD,data=thief)
+
+thief$LOCATION=as.factor(thief$LOCATION)
+e <- ggplot(thief, aes(x = LOCATION, y=ASSAY,fill=METHOD)) + geom_boxplot()
+e
+thief$LOCATION=as.factor(thief$LOCATION)
+thief$METHOD=as.factor(thief$METHOD)
+e <- ggplot(thief, aes(x = LOCATION, y=ASSAY, color=METHOD)) + geom_point()
+e
+# boxplot(ASSAY ~ LOCATION, col=as.numeric(thief$METHOD),data=thief)
+thief_wide=reshape(thief[,1:4],timevar='REPLICATE', idvar=c('LOCATION','METHOD'),  direction = "wide",v.names='ASSAY')
+thief_wide
+corrplot::corrplot(cor(thief_wide[,3:5]))
+corrplot::corrplot(cor(thief_wide[7:12,3:5]))
+corrplot::corrplot(cor(thief_wide[1:6,3:5]))
+
+
+
+
+
+```
+
+
+- We have 6 observations per location, three for each sampling type
+- Each location could have its own mean concentration -- see EDA $\mu+\beta_i$
+- We expect that the assays within each sampling type will vary around their location means - $\beta_i$
+- Nested within the locations is the replicates , 3 per sampling method 
+- We can capture the variability of sampling at each location via the random effect location. 
+- Let $i$ be the location number, $k$ be the sampling type and $j$ be the replicate number
+
+$$Y_{ijk}=\mu+\alpha_k+\beta_i+\epsilon_{ijk}.$$
+We can also write this as follows: 
+
+- Let $i$ be the location number and $j$ be the sampling type 
+- Let $X_{ij}=(1,j-1)$ 
+- Let $Z_{ij}=1$ with $\beta_i\sim N(0, \Sigma_\beta)$. 
+
+$$Y_{ij}=X_{ij}\alpha+Z_{ij}\beta_{i}+\epsilon_{ij}.$$
+
+```{r Specification and estimation 2}
+thief=thief[,-5]
+thief$REPLICATE=as.factor(thief$REPLICATE)
+thief$LOCATION=as.factor(thief$LOCATION)
+thief$METHOD=as.factor(thief$METHOD)
+print(thief$METHOD)
+#Unit is True
+thief$ASSAY=as.numeric(thief$ASSAY)
+thief
+
+
+# 
+# model=lme4::lmer(ASSAY ~ REPLICATE*METHOD+1|LOCATION, data=thief )
+# summary(model)
+# model=lme4::lmer(ASSAY ~ 1|LOCATION, data=thief )
+# summary(model)
+# model=lme4::lmer(ASSAY ~ 1|METHOD, data=thief )
+# summary(model)
+# ranef(model)
+```
+```{r Specification and estimation 3}
+
+model=lme(
+  fixed= ASSAY ~ METHOD ,
+  random=  ~ 1|LOCATION, data=thief)
+summary(model)
+print(ranef(model))
+
+```
+```{r}
+library(nlme)
+fe=nlme::fixed.effects(model)
+sigma_beta_est= nlme::getVarCov(model)
+sigma_beta_est
+
+sigma_est=model$sigma
+n=nrow(thief)
+n_sim=1000
+
+# simulated=replicate(n,rnorm(n_sim,fe[1],sigma_est))
+
+
+#Step 3
+YR=t(replicate(n_sim,rep(rnorm(6,0,sigma_beta_est),each=6)))
+simulated=t(replicate(n_sim,rnorm(n,fe[1],sigma_est)))+YR
+
+
+
+# 1000 x 16
+dim(simulated)
+
+
+#Step 4
+#takes a sample y and computes the LRT for Y
+compute_lrt=function(y){
+  
+  
+  thief_copy=thief
+  thief_copy$ASSAY=y
+  
+  alt=lme(
+      fixed= ASSAY~METHOD,
+      random= ASSAY ~ 1 | LOCATION, data=thief_copy )
+  
+  null<-lme(
+      fixed= ASSAY~1,
+      random= ASSAY ~ 1 | LOCATION, data=thief_copy )
+  
+  test=anova(alt,null)$L.Ratio[2]
+  
+  
+  return(test)
+}
+
+ts=apply(simulated, 1, compute_lrt)
+
+
+
+#computing t hat
+fit_null<-lme(
+      fixed= ASSAY~1,
+      random= ASSAY ~ 1 | LOCATION, data=thief)
+observed=anova(model,fit_null)$L.Ratio[2]
+
+
+
+
+# pvalue=1-mean(observed>ts); pvalue
+pvalue=mean(observed<=ts); pvalue
+hist(ts,xlim=c(min(ts),22))
+abline(v=observed)
+observed
+```
+
+
+
+
+```{r testing 2}
+
+model=lme(
+      fixed= ASSAY~1,
+      random= ASSAY ~ 1 | LOCATION, data=thief)
+fe=nlme::fixed.effects(model)
+sigma_beta_est= nlme::getVarCov(model)
+sigma_beta_est
+
+sigma_est=model$sigma
+n=nrow(thief)
+n_sim=1000
+
+# simulated=replicate(n,rnorm(n_sim,fe[1],sigma_est))
+
+
+#Step 3
+
+simulated=t(replicate(n_sim,rnorm(n,fe[1],sqrt(sigma_est^2))))
+
+
+
+# 1000 x 16
+dim(simulated)
+
+
+#Step 4
+#takes a sample y and computes the LRT for Y
+compute_lrt=function(y){
+  
+  
+  thief_copy=thief
+  thief_copy$ASSAY=y
+  
+  alt=lme(
+      fixed= ASSAY~1,
+      random= ASSAY ~ 1 | LOCATION, data=thief_copy )
+  
+  null<-lm(ASSAY ~ 1 , data=thief_copy)
+  
+  test=anova(alt,null)$L.Ratio[2]
+  
+  
+  return(test)
+}
+
+ts=apply(simulated, 1, compute_lrt)
+
+
+
+#computing t hat
+fit_null<-lm(ASSAY ~ 1, data=thief)
+observed=anova(model,fit_null)$L.Ratio[2]
+
+
+
+
+# pvalue=1-mean(observed>ts); pvalue
+pvalue=mean(observed<=ts); pvalue
+hist(ts,xlim=c(min(ts),22))
+abline(v=observed)
+observed
+```
+
+
+
+```{r GOF 3}
+
+model=lme(
+      fixed= ASSAY~1,
+      random= ASSAY ~ 1 | LOCATION, data=thief)
+plot(model)
+qqnorm(model, ~ residuals(.,type="pearson"))
+plot(ranef(model))
+
+qqnorm(ranef(model)[,1])
+plot(model, ASSAY ~ fitted(.),abline=c(0,1))
+
+fit_null<-lm(ASSAY ~ 1 , data=thief)
+confint(fit_null)
+fit_null
+```
+
+
+```{r Specification and estimation 4}
+thief$CEN=abs(thief$ASSAY-mean(thief$ASSAY))
+model=lme(
+  fixed= CEN ~ METHOD ,
+  random=  ~ 1|LOCATION, data=thief)
+summary(model)
+print(ranef(model))
+
+hist(thief$CEN)
+```
+
+
+```{r}
+library(nlme)
+fe=nlme::fixed.effects(model)
+sigma_beta_est= nlme::getVarCov(model)
+sigma_beta_est
+
+sigma_est=model$sigma
+n=nrow(thief)
+n_sim=1000
+
+# simulated=replicate(n,rnorm(n_sim,fe[1],sigma_est))
+
+
+#Step 3
+YR=t(replicate(n_sim,rep(rnorm(6,0,sigma_beta_est),each=6)))
+simulated=t(replicate(n_sim,rnorm(n,fe[1],sigma_est)))+YR
+
+
+
+# 1000 x 16
+dim(simulated)
+
+
+#Step 4
+#takes a sample y and computes the LRT for Y
+compute_lrt=function(y){
+  
+  
+  thief_copy=thief
+  thief_copy$CEN=y
+  
+  alt=lme(
+  fixed= CEN ~ METHOD ,
+  random=  ~ 1|LOCATION, data=thief_copy )
+  
+  null<-lme(
+  fixed= CEN ~ 1,
+  random=  ~ 1|LOCATION, data=thief_copy )
+  
+  test=anova(alt,null)$L.Ratio[2]
+  
+  
+  return(test)
+}
+
+ts=apply(simulated, 1, compute_lrt)
+
+
+
+#computing t hat
+fit_null<-lme(
+  fixed= CEN ~ 1 ,
+  random=  ~ 1|LOCATION, data=thief)
+observed=anova(model,fit_null)$L.Ratio[2]
+
+
+
+
+# pvalue=1-mean(observed>ts); pvalue
+pvalue=mean(observed<=ts); pvalue
+hist(ts,xlim=c(min(ts),22))
+abline(v=observed)
+observed
+```
+
+Results summary: 
+
+- Tablet mean concentration was estimated to be 35.8 with CI (35.3, 36.3) 
+- Active ingredient was uniform across blender and sampling types
+- Tablets in the drums on the end points seem to have a higher active ingredient
+- The blender has higher concentrations of active ingredient 36.65 with CI (36.0743, 37.23015)
+- The location has significant variance (~1 ingre/mg)
+- Sampling methods are equivalent in mean, but UNIT seems to have higher variance, but this is not statistically significant
+
+
+
+## Case study: Treatment of Lead-Exposed Children
+
+*Does treatment* $A$ (chelation treatment with succimer) affect the
+levels of lead in the blood of lead-exposed children?
+
+[Data source](https://pubmed.ncbi.nlm.nih.gov/9690266/) or [Data
+source](https://content.sph.harvard.edu/fitzmaur/ala2e/)
+
+Description:
+
+The Treatment of Lead-Exposed Children (TLC) trial was a
+placebo-controlled,randomized study of succimer (a chelating agent) in
+children with blood lead levels of 20-44 micrograms/dL. These data
+consist of four repeated measurements of blood lead levels obtained at
+baseline (or week 0), week 1, week 4, and week 6 on 100 children who
+were randomly assigned to chelation treatment with succimer or placebo.
+
+Data Column Descriptions: - ID: Subject ID Number - Treatment: Which
+treatment group (P=Placebo; A=Succimenr) - W0, W1, W4, W6: Blood-lead
+levels in micrograms per deciliter at Weeks 0, 1, 4, and 6
+
+```{r load in the data}
+################################################################################
+TLC <- read.csv("data/TLC.csv",stringsAsFactors = T)
+head(TLC)
+dim(TLC)
+TLC$ID=as.factor(TLC$ID)
+TLC$ID=as.factor(TLC$ID)
+```
+
+### Modelling:
+
+-   Recall that the goal is to answer: "Does treatment $A$ affect the
+    levels of lead in the blood of lead-exposed children?"
+-   How are treatment group and time related to lead levels?
+-   Given treatment and time, what do we expect the blood levels to be
+    $E(W|Treatment,Time)$?
+
+Putting this data into our notation gives:
+
+-   $n=100$, $J=4$, $K=1$
+-   $Y_{ij}$ is the lead level of individual $i$ at time $j$
+-   $X_{ij}$ is treatment indicator of individual $i$ at time $j$
+-   $t_j\in\{0,1,4,6\}$
+
+Let's explore this data a bit. Notice that the data is in "wide format".
+To convert to a between long and wide format use `reshape()`
+
+```{r wide_long}
+head(TLC)
+
+# Convert from "wide" to "long" and back again, using reshape.
+# If you're interested, you can also use `pivot_wider` and `pivot_longer` from the tidyverse
+#   (If that doesn't mean anything to you, feel free to ignore it!)
+TLC_long <- reshape(data = TLC,
+                    varying = c("W0", "W1", "W4", "W6"),
+                    timevar = "week",
+                    idvar = "ID",
+                    times = c(0, 1, 4, 6),
+                    direction = "long",
+                    sep = "")
+head(TLC_long)
+```
+
+```{r wide_long2}
+TLC_wide <- reshape(data = TLC_long,
+                    timevar = "week",
+                    v.names = "W",
+                    idvar = "ID",
+                    times = c(0, 1, 4, 6),
+                    direction = "wide",
+                    sep = "")
+
+head(TLC_wide)
+
+```
+
+```{r box_long}
+#balanced
+table(TLC_long$ID)
+#Check for missing values
+colSums(is.na(TLC_long))
+
+
+# Create a Basic Boxplot to get a Sense of the Data
+boxplot(W ~ week + Treatment, data = TLC_long)
+abline(v=4.5) # Abline v=... draws a vertical line at 4.5 
+
+
+```
+
+```{r latt2}
+
+# Start with an xyplot 
+# This requires the package 'lattice'
+# You can install using: install.packages("lattice")
+
+lattice::xyplot(W ~ week | Treatment, 
+                data = TLC_long, 
+                groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+
+```
+
+```{r random subset}
+# The plot is a mess, as-is, so instead we can subset!
+plot_num <- 5 # Select a fixed number
+
+# This is Just Randomly Sampling from Each Group
+random_samples_P <- sample(unique(TLC_long$ID[which(TLC_long$Treatment == 'P')]), 
+                         size = plot_num,
+                         replace = FALSE)
+random_samples_A <- sample(unique(TLC_long$ID[which(TLC_long$Treatment == 'A')]), 
+                           size = plot_num,
+                           replace = FALSE)
+
+
+## Actually Draw the Plots
+par(mfrow=c(1,2))
+plot(W ~ week, data = TLC_long, subset = (Treatment == 'P'))
+for (rid in random_samples_P){
+  # Loop through the Random Points and Draw the Corresponding Lines
+  lines(W ~ week, 
+        data = TLC_long, 
+        subset = (ID==rid), 
+        type = 'l')
+}
+
+# Repeat it for Active Treatment
+plot(W ~ week, data = TLC_long, subset = (Treatment == 'A'))
+for (rid in random_samples_A){
+  lines(W ~ week, 
+        data = TLC_long, 
+        subset = (ID==rid), 
+        type = 'l')
+}
+
+```
+
+Correlation plot
+
+```{r}
+# This is a basic correlation plot
+# It requires the 'corrplot' library, which can be installed with
+# install.packages("corrplot")
+corrplot::corrplot.mixed(cor(TLC_wide[c("W0","W1","W4","W6")]), 
+                         lower = 'number',
+                         upper = 'square')
+```
+
+What can we conclude from the EDA? What model could we propose in this
+case?
+
+### Longitudinal Data as a mixed effects model
+
+-   Looking at the XY plots, we see that the individual means seem to
+    vary.
+-   This means that each individual is likely to have a different mean
+-   The treatment effect should be modelled as a fixed effect
+-   How to model time effect?
+
+```{r latt3}
+
+lattice::xyplot(W ~ week | Treatment, 
+                data = TLC_long, 
+                groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+
+```
+
+What are some ways we can model the time effect here?
+
+Let's fit a linear mixed effects model.
+
+```{r}
+
+# head(TLC_long
+# head(TLC_long[order(TLC_long$ID),])
+typeof(TLC_long)
+```
+
+```{r potential model 1}
+
+#REML
+#treat the time points as factors
+TLC_long$week=as.factor(TLC_long$week)
+# head(TLC_long)
+model <- nlme::lme(fixed= W ~ 1 +Treatment+week+Treatment*week,
+                   random= ~1|ID, data = TLC_long) #to run the model
+
+summary(model)
+
+nlme::intervals(model)
+```
+
+What do we notice here?
+
+-   We see that the treatment effect is not significant in this model,
+    but the interaction terms are.
+
+```{r GOF 4}
+
+#we can plot the xy plot of the fitted values
+
+
+yhat=predict(model,newdata = TLC_long[,-4],level=0:1)
+TLC_long_2=TLC_long
+TLC_long_2$yhat=yhat[,3]
+TLC_long_2$week2=as.numeric(as.character(TLC_long_2$week))
+
+lattice::xyplot(yhat ~ week2|Treatment,data=TLC_long_2  , groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'),ylim=c(0,60))
+
+# residuals over time?
+
+# Residuals vs. Fitted (no patterns)
+plot(model, main = "Plot of residuals vs. fitted.")
+
+# QQPlot for normality of errors
+qqnorm(model, ~ residuals(., type="pearson")) # Some issues... probably
+
+# Plots for the Predicted (BLUPs)
+plot(nlme::ranef(model)) 
+qqnorm(model, ~ranef(.)) # These look okay!
+
+# model$residuals
+
+
+# Observed vs. Fitted
+plot(model, W ~ fitted(.), abline = c(0,1), main = "Observed vs. Fitted")
+plot(model, W~ fitted(.)|ID, abline = c(0,1), main = "Observed vs. Fitted (By Subject)")
+# Could also look (e.g.) by treatment, if it existed!
+
+
+```
+
+Some thoughts
+
+-   Maybe we should investigate this residual... If this patient is
+    outlying for indiosyncratic reasons we may want to remove them and
+    redo the analysis
+-   The fitted xy plots look like the empirical ones - good sign
+-   Everything else looks pretty good
+
+```{r}
+id=TLC_long$ID[which(residuals(model, type="pearson")>5)]
+
+plot(TLC_long[TLC_long$ID==id,-1])
+
+col=rep(1,400)
+col[TLC_long$ID==id]=4
+
+lwd=rep(1,400)
+lwd[TLC_long$ID==id]=4
+
+lattice::xyplot(W ~ week | Treatment, 
+                data = TLC_long, 
+                groups = ID, 
+                col = col, 
+                type = c('l', 'p'),lwd=lwd)
+
+qqnorm(model, ~ranef(.)) 
+
+```
+
+```{r}
+TLC_long_3=TLC_long[TLC_long$ID!=id,]
+
+model2 <- nlme::lme(fixed= W ~ 1 +Treatment+week+Treatment*week,random= ~1|ID, data = TLC_long_3) #to run the model
+
+summary(model)
+summary(model2)
+
+nlme::intervals(model)
+nlme::intervals(model2)
+
+nlme::fixef(model)-nlme::fixef(model2)
+
+
+anova(model2)
+```
+
+### Sensitivity analysis - We could have fit a quadratic or piece-wise linear model to the data.
+
+```{r}
+TLC_long_pl=TLC_long_3
+TLC_long_pl$week=as.numeric(as.character(TLC_long_3$week))+1
+TLC_long_pl$time1=(TLC_long_pl$week<2)*TLC_long_pl$week
+# TLC_long_pl$time2=(TLC_long_pl$week>=3)*(TLC_long_pl$week-TLC_long_pl$week)
+head(TLC_long_pl)
+
+lattice::xyplot(W ~ week|Treatment,data=TLC_long_pl  , groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+```
+
+```{r}
+model_pl <- nlme::lme(fixed= W ~ week+time1+Treatment+Treatment*week+Treatment*time1,random= ~1|ID, data = TLC_long_pl) #to run the model
+summary(model_pl)
+summary(model2)
+
+```
+
+```{r GOF 5}
+
+#we can plot the xy plot of the fitted values
+
+
+yhat=predict(model_pl,newdata = TLC_long_pl[,-4],level=0:1)
+TLC_long_4=TLC_long_pl
+TLC_long_4$yhat=yhat[,3]
+
+lattice::xyplot(yhat ~ week|Treatment,data=TLC_long_4  , groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+
+lattice::xyplot(yhat ~ week|Treatment,data=TLC_long_2  , groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+
+lattice::xyplot(W ~ week|Treatment,data=TLC_long_2  , groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+
+```
+
+```{r GOF 6}
+# residuals over time?
+
+# Residuals vs. Fitted (no patterns)
+plot(model_pl, main = "Plot of residuals vs. fitted.")
+
+# QQPlot for normality of errors
+qqnorm(model_pl, ~ residuals(., type="pearson")) # Some issues... probably
+
+# Plots for the Predicted (BLUPs)
+plot(nlme::ranef(model_pl)) 
+qqnorm(model_pl, ~ranef(.)) # These look okay!
+
+# model$residuals
+
+
+# Observed vs. Fitted
+plot(model_pl, W ~ fitted(.), abline = c(0,1), main = "Observed vs. Fitted")
+# Could also look (e.g.) by treatment, if it existed!
+
+residuals=residuals(model_pl, type="pearson")
+re=nlme::ranef(model_pl)
+re2=rep(re$`(Intercept)` ,each=4)
+
+plot(residuals,re2)
+
+length(residuals)
+length(re)
+```
+
+```{r}
+TLC_long_pl$weeksq= TLC_long_pl$week^2
+model_q <- nlme::lme(fixed= W ~ week+weeksq+Treatment+week*Treatment+weeksq*Treatment,random= ~1|ID, data = TLC_long_pl) #to run the model
+summary(model_q)
+
+# model_q <- nlme::lme(fixed= W ~ week+weeksq+Treatment+weeksq*Treatment,random= ~1|ID, data = TLC_long_pl) #to run the model
+summary(model_q)
+
+summary(model2)
+
+```
+
+```{r GOF 7}
+
+#we can plot the xy plot of the fitted values
+
+
+yhat=predict(model_q,newdata = TLC_long_pl[,-4],level=0:1)
+TLC_long_5=TLC_long_pl
+TLC_long_5$yhat=yhat[,3]
+
+par(mfrow=c(2,2))
+
+lattice::xyplot(yhat ~ week|Treatment,data=TLC_long_5  , groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+
+lattice::xyplot(yhat ~ week|Treatment,data=TLC_long_4  , groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+
+lattice::xyplot(yhat ~ week|Treatment,data=TLC_long_2  , groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+
+lattice::xyplot(W ~ week|Treatment,data=TLC_long_2  , groups = ID, 
+                col = 'black', 
+                type = c('l', 'p'))
+
+```
+
+Conclusions:
+
+-   All models indicate a significant effect of treatment, with the
+    largest drop being a time point 1.
+-   The lead levels seem to be returning to baseline over time
+-   The treatment certainly reduces lead levels for a few weeks
+-   Investigate subject data with ID 40.
+
+We can get more specific too
+
+-   At time point 1, individual lead levels seem to drop by 11 points
+    over the placebo.
+-   After that, the gap starts closing over time - valued at 11, 8, and
+    then 3
+
