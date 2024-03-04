@@ -1315,7 +1315,7 @@ sd((Intercept)) 6.430117 10.95445 18.66216
 <p><span class="math display">\[Y_{ij}=X_{ij}^\top\alpha+Z_{ij}^\top\beta_i+\epsilon_{ij},\]</span> where for <span class="math inline">\(i\in[299]\)</span> and <span class="math inline">\(j\in [J_i]\)</span>.</p>
 <p>Here,</p>
 <ul>
-<li><span class="math inline">\(Z_i=(1 , age )\)</span>, <span class="math inline">\(X_i=(1 , age , loght ...)\)</span></li>
+<li><span class="math inline">\(Z_{ij}^\top=(1 , age )\)</span>, <span class="math inline">\(X_{ij}^\top=(1 , age , loght ...)\)</span></li>
 <li>Each observation has a random intercept and slope, which depends on their age.</li>
 </ul>
 </section>
@@ -1903,7 +1903,7 @@ class "lm", updated model is of class "lme"</code></pre>
 <span id="cb138-27"><a href="#cb138-27" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb138-28"><a href="#cb138-28" aria-hidden="true" tabindex="-1"></a>pvalue<span class="ot">=</span><span class="fu">mean</span>(observed<span class="sc">&lt;=</span>ts); pvalue</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.95</code></pre>
+<pre><code>[1] 0.89</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb140"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(ts)</span>
 <span id="cb140-2"><a href="#cb140-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>observed); observed</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2202,7 +2202,7 @@ class "lm", updated model is of class "lme"</code></pre>
 <span id="cb182-28"><a href="#cb182-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb182-29"><a href="#cb182-29" aria-hidden="true" tabindex="-1"></a>pvalue<span class="ot">=</span><span class="fu">mean</span>(observed<span class="sc">&lt;=</span>ts); pvalue</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0</code></pre>
+<pre><code>[1] 0.01</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb184"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb184-1"><a href="#cb184-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(ts,<span class="at">xlim=</span><span class="fu">c</span>(<span class="fu">min</span>(ts),<span class="dv">9</span>))</span>
 <span id="cb184-2"><a href="#cb184-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>observed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
