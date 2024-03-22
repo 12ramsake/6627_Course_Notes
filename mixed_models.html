@@ -817,10 +817,10 @@ Y_{ijk}&amp;=X_{ijk}\alpha+Z_{i,jk}\beta_i+Z_{ij,k}\beta_{ij}+Z_{ijk}\beta_{ijk}
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(nlme)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'lme4' was built under R version 4.2.3</code></pre>
+<pre><code>Loading required package: Matrix</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: Matrix</code></pre>
+<pre><code>Warning: package 'Matrix' was built under R version 4.2.3</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
@@ -1872,7 +1872,7 @@ class "lm", updated model is of class "lme"</code></pre>
 <span id="cb136-27"><a href="#cb136-27" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb136-28"><a href="#cb136-28" aria-hidden="true" tabindex="-1"></a>pvalue<span class="ot">=</span><span class="fu">mean</span>(observed<span class="sc">&lt;=</span>ts); pvalue</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.97</code></pre>
+<pre><code>[1] 0.86</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb138"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb138-1"><a href="#cb138-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(ts)</span>
 <span id="cb138-2"><a href="#cb138-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>observed); observed</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2450,7 +2450,12 @@ Number of Groups: 6 </code></pre>
 <p><a href="https://pubmed.ncbi.nlm.nih.gov/9690266/">Data source</a> or <a href="https://content.sph.harvard.edu/fitzmaur/ala2e/">Data source</a></p>
 <p>Description:</p>
 <p>The Treatment of Lead-Exposed Children (TLC) trial was a placebo-controlled,randomized study of succimer (a chelating agent) in children with blood lead levels of 20-44 micrograms/dL. These data consist of four repeated measurements of blood lead levels obtained at baseline (or week 0), week 1, week 4, and week 6 on 100 children who were randomly assigned to chelation treatment with succimer or placebo.</p>
-<p>Data Column Descriptions: - ID: Subject ID Number - Treatment: Which treatment group (P=Placebo; A=Succimenr) - W0, W1, W4, W6: Blood-lead levels in micrograms per deciliter at Weeks 0, 1, 4, and 6</p>
+<p>Data Column Descriptions:</p>
+<ul>
+<li>ID: Subject ID Number</li>
+<li>Treatment: Which treatment group (P=Placebo; A=Succimenr)</li>
+<li>W0, W1, W4, W6: Blood-lead levels in micrograms per deciliter at Weeks 0, 1, 4, and 6</li>
+</ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb219"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb219-1"><a href="#cb219-1" aria-hidden="true" tabindex="-1"></a><span class="do">################################################################################</span></span>
 <span id="cb219-2"><a href="#cb219-2" aria-hidden="true" tabindex="-1"></a>TLC <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/TLC.csv"</span>,<span class="at">stringsAsFactors =</span> T)</span>
@@ -2594,37 +2599,43 @@ Number of Groups: 6 </code></pre>
 <span id="cb236-10"><a href="#cb236-10" aria-hidden="true" tabindex="-1"></a>                           <span class="at">replace =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb236-11"><a href="#cb236-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb236-12"><a href="#cb236-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb236-13"><a href="#cb236-13" aria-hidden="true" tabindex="-1"></a><span class="do">## Actually Draw the Plots</span></span>
-<span id="cb236-14"><a href="#cb236-14" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb236-15"><a href="#cb236-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(W <span class="sc">~</span> week, <span class="at">data =</span> TLC_long, <span class="at">subset =</span> (Treatment <span class="sc">==</span> <span class="st">'P'</span>))</span>
-<span id="cb236-16"><a href="#cb236-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (rid <span class="cf">in</span> random_samples_P){</span>
-<span id="cb236-17"><a href="#cb236-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Loop through the Random Points and Draw the Corresponding Lines</span></span>
-<span id="cb236-18"><a href="#cb236-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(W <span class="sc">~</span> week, </span>
-<span id="cb236-19"><a href="#cb236-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> TLC_long, </span>
-<span id="cb236-20"><a href="#cb236-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">subset =</span> (ID<span class="sc">==</span>rid), </span>
-<span id="cb236-21"><a href="#cb236-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">'l'</span>)</span>
-<span id="cb236-22"><a href="#cb236-22" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb236-23"><a href="#cb236-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb236-24"><a href="#cb236-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Repeat it for Active Treatment</span></span>
-<span id="cb236-25"><a href="#cb236-25" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(W <span class="sc">~</span> week, <span class="at">data =</span> TLC_long, <span class="at">subset =</span> (Treatment <span class="sc">==</span> <span class="st">'A'</span>))</span>
-<span id="cb236-26"><a href="#cb236-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (rid <span class="cf">in</span> random_samples_A){</span>
-<span id="cb236-27"><a href="#cb236-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(W <span class="sc">~</span> week, </span>
-<span id="cb236-28"><a href="#cb236-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> TLC_long, </span>
-<span id="cb236-29"><a href="#cb236-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">subset =</span> (ID<span class="sc">==</span>rid), </span>
-<span id="cb236-30"><a href="#cb236-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">'l'</span>)</span>
-<span id="cb236-31"><a href="#cb236-31" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb236-13"><a href="#cb236-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb236-14"><a href="#cb236-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb236-15"><a href="#cb236-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb236-16"><a href="#cb236-16" aria-hidden="true" tabindex="-1"></a><span class="do">## Actually Draw the Plots</span></span>
+<span id="cb236-17"><a href="#cb236-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(W <span class="sc">~</span> week, <span class="at">data =</span> TLC_long, <span class="at">subset =</span> (Treatment <span class="sc">==</span> <span class="st">'A'</span>))</span>
+<span id="cb236-18"><a href="#cb236-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (rid <span class="cf">in</span> random_samples_A){</span>
+<span id="cb236-19"><a href="#cb236-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(W <span class="sc">~</span> week, </span>
+<span id="cb236-20"><a href="#cb236-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> TLC_long, </span>
+<span id="cb236-21"><a href="#cb236-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">subset =</span> (ID<span class="sc">==</span>rid), </span>
+<span id="cb236-22"><a href="#cb236-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">'l'</span>)</span>
+<span id="cb236-23"><a href="#cb236-23" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/random subset-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb237"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb237-1"><a href="#cb237-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Repeat it for Placebo </span></span>
+<span id="cb237-2"><a href="#cb237-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb237-3"><a href="#cb237-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb237-4"><a href="#cb237-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(W <span class="sc">~</span> week, <span class="at">data =</span> TLC_long, <span class="at">subset =</span> (Treatment <span class="sc">==</span> <span class="st">'P'</span>))</span>
+<span id="cb237-5"><a href="#cb237-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (rid <span class="cf">in</span> random_samples_P){</span>
+<span id="cb237-6"><a href="#cb237-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Loop through the Random Points and Draw the Corresponding Lines</span></span>
+<span id="cb237-7"><a href="#cb237-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(W <span class="sc">~</span> week, </span>
+<span id="cb237-8"><a href="#cb237-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> TLC_long, </span>
+<span id="cb237-9"><a href="#cb237-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">subset =</span> (ID<span class="sc">==</span>rid), </span>
+<span id="cb237-10"><a href="#cb237-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">'l'</span>)</span>
+<span id="cb237-11"><a href="#cb237-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixed_models_files/figure-html/random subset-2.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Correlation plot</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb237"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb237-1"><a href="#cb237-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This is a basic correlation plot</span></span>
-<span id="cb237-2"><a href="#cb237-2" aria-hidden="true" tabindex="-1"></a><span class="co"># It requires the 'corrplot' library, which can be installed with</span></span>
-<span id="cb237-3"><a href="#cb237-3" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("corrplot")</span></span>
-<span id="cb237-4"><a href="#cb237-4" aria-hidden="true" tabindex="-1"></a>corrplot<span class="sc">::</span><span class="fu">corrplot.mixed</span>(<span class="fu">cor</span>(TLC_wide[<span class="fu">c</span>(<span class="st">"W0"</span>,<span class="st">"W1"</span>,<span class="st">"W4"</span>,<span class="st">"W6"</span>)]), </span>
-<span id="cb237-5"><a href="#cb237-5" aria-hidden="true" tabindex="-1"></a>                         <span class="at">lower =</span> <span class="st">'number'</span>,</span>
-<span id="cb237-6"><a href="#cb237-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">upper =</span> <span class="st">'square'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb238"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb238-1"><a href="#cb238-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This is a basic correlation plot</span></span>
+<span id="cb238-2"><a href="#cb238-2" aria-hidden="true" tabindex="-1"></a><span class="co"># It requires the 'corrplot' library, which can be installed with</span></span>
+<span id="cb238-3"><a href="#cb238-3" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("corrplot")</span></span>
+<span id="cb238-4"><a href="#cb238-4" aria-hidden="true" tabindex="-1"></a>corrplot<span class="sc">::</span><span class="fu">corrplot.mixed</span>(<span class="fu">cor</span>(TLC_wide[<span class="fu">c</span>(<span class="st">"W0"</span>,<span class="st">"W1"</span>,<span class="st">"W4"</span>,<span class="st">"W6"</span>)]), </span>
+<span id="cb238-5"><a href="#cb238-5" aria-hidden="true" tabindex="-1"></a>                         <span class="at">lower =</span> <span class="st">'number'</span>,</span>
+<span id="cb238-6"><a href="#cb238-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">upper =</span> <span class="st">'square'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -2640,11 +2651,11 @@ Number of Groups: 6 </code></pre>
 <li>How to model time effect?</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb238"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb238-1"><a href="#cb238-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week <span class="sc">|</span> Treatment, </span>
-<span id="cb238-2"><a href="#cb238-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> TLC_long, </span>
-<span id="cb238-3"><a href="#cb238-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">groups =</span> ID, </span>
-<span id="cb238-4"><a href="#cb238-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
-<span id="cb238-5"><a href="#cb238-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb239"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb239-1"><a href="#cb239-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week <span class="sc">|</span> Treatment, </span>
+<span id="cb239-2"><a href="#cb239-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> TLC_long, </span>
+<span id="cb239-3"><a href="#cb239-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">groups =</span> ID, </span>
+<span id="cb239-4"><a href="#cb239-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
+<span id="cb239-5"><a href="#cb239-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/latt3-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -2652,22 +2663,22 @@ Number of Groups: 6 </code></pre>
 <p>What are some ways we can model the time effect here?</p>
 <p>Let’s fit a linear mixed effects model.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb239"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb239-1"><a href="#cb239-1" aria-hidden="true" tabindex="-1"></a><span class="co"># head(TLC_long</span></span>
-<span id="cb239-2"><a href="#cb239-2" aria-hidden="true" tabindex="-1"></a><span class="co"># head(TLC_long[order(TLC_long$ID),])</span></span>
-<span id="cb239-3"><a href="#cb239-3" aria-hidden="true" tabindex="-1"></a><span class="fu">typeof</span>(TLC_long)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb240"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb240-1"><a href="#cb240-1" aria-hidden="true" tabindex="-1"></a><span class="co"># head(TLC_long</span></span>
+<span id="cb240-2"><a href="#cb240-2" aria-hidden="true" tabindex="-1"></a><span class="co"># head(TLC_long[order(TLC_long$ID),])</span></span>
+<span id="cb240-3"><a href="#cb240-3" aria-hidden="true" tabindex="-1"></a><span class="fu">typeof</span>(TLC_long)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "list"</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb241"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb241-1"><a href="#cb241-1" aria-hidden="true" tabindex="-1"></a><span class="co">#REML</span></span>
-<span id="cb241-2"><a href="#cb241-2" aria-hidden="true" tabindex="-1"></a><span class="co">#treat the time points as factors</span></span>
-<span id="cb241-3"><a href="#cb241-3" aria-hidden="true" tabindex="-1"></a>TLC_long<span class="sc">$</span>week<span class="ot">=</span><span class="fu">as.factor</span>(TLC_long<span class="sc">$</span>week)</span>
-<span id="cb241-4"><a href="#cb241-4" aria-hidden="true" tabindex="-1"></a><span class="co"># head(TLC_long)</span></span>
-<span id="cb241-5"><a href="#cb241-5" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> nlme<span class="sc">::</span><span class="fu">lme</span>(<span class="at">fixed=</span> W <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span>Treatment<span class="sc">+</span>week<span class="sc">+</span>Treatment<span class="sc">*</span>week,</span>
-<span id="cb241-6"><a href="#cb241-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">random=</span> <span class="sc">~</span><span class="dv">1</span><span class="sc">|</span>ID, <span class="at">data =</span> TLC_long) <span class="co">#to run the model</span></span>
-<span id="cb241-7"><a href="#cb241-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb241-8"><a href="#cb241-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb242"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb242-1"><a href="#cb242-1" aria-hidden="true" tabindex="-1"></a><span class="co">#REML</span></span>
+<span id="cb242-2"><a href="#cb242-2" aria-hidden="true" tabindex="-1"></a><span class="co">#treat the time points as factors</span></span>
+<span id="cb242-3"><a href="#cb242-3" aria-hidden="true" tabindex="-1"></a>TLC_long<span class="sc">$</span>week<span class="ot">=</span><span class="fu">as.factor</span>(TLC_long<span class="sc">$</span>week)</span>
+<span id="cb242-4"><a href="#cb242-4" aria-hidden="true" tabindex="-1"></a><span class="co"># head(TLC_long)</span></span>
+<span id="cb242-5"><a href="#cb242-5" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> nlme<span class="sc">::</span><span class="fu">lme</span>(<span class="at">fixed=</span> W <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span>Treatment<span class="sc">+</span>week<span class="sc">+</span>Treatment<span class="sc">*</span>week,</span>
+<span id="cb242-6"><a href="#cb242-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">random=</span> <span class="sc">~</span><span class="dv">1</span><span class="sc">|</span>ID, <span class="at">data =</span> TLC_long) <span class="co">#to run the model</span></span>
+<span id="cb242-7"><a href="#cb242-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb242-8"><a href="#cb242-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear mixed-effects model fit by REML
   Data: TLC_long 
@@ -2706,7 +2717,7 @@ Standardized Within-Group Residuals:
 Number of Observations: 400
 Number of Groups: 100 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb243"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb243-1"><a href="#cb243-1" aria-hidden="true" tabindex="-1"></a>nlme<span class="sc">::</span><span class="fu">intervals</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb244"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb244-1"><a href="#cb244-1" aria-hidden="true" tabindex="-1"></a>nlme<span class="sc">::</span><span class="fu">intervals</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Approximate 95% confidence intervals
 
@@ -2736,54 +2747,54 @@ sd((Intercept)) 4.33785 5.112717 6.025997
 <li>We see that the treatment effect is not significant in this model, but the interaction terms are.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb245"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb245-1"><a href="#cb245-1" aria-hidden="true" tabindex="-1"></a><span class="co">#we can plot the xy plot of the fitted values</span></span>
-<span id="cb245-2"><a href="#cb245-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb245-3"><a href="#cb245-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb245-4"><a href="#cb245-4" aria-hidden="true" tabindex="-1"></a>yhat<span class="ot">=</span><span class="fu">predict</span>(model,<span class="at">newdata =</span> TLC_long[,<span class="sc">-</span><span class="dv">4</span>],<span class="at">level=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>)</span>
-<span id="cb245-5"><a href="#cb245-5" aria-hidden="true" tabindex="-1"></a>TLC_long_2<span class="ot">=</span>TLC_long</span>
-<span id="cb245-6"><a href="#cb245-6" aria-hidden="true" tabindex="-1"></a>TLC_long_2<span class="sc">$</span>yhat<span class="ot">=</span>yhat[,<span class="dv">3</span>]</span>
-<span id="cb245-7"><a href="#cb245-7" aria-hidden="true" tabindex="-1"></a>TLC_long_2<span class="sc">$</span>week2<span class="ot">=</span><span class="fu">as.numeric</span>(<span class="fu">as.character</span>(TLC_long_2<span class="sc">$</span>week))</span>
-<span id="cb245-8"><a href="#cb245-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb245-9"><a href="#cb245-9" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week2<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
-<span id="cb245-10"><a href="#cb245-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
-<span id="cb245-11"><a href="#cb245-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>),<span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">60</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb246"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb246-1"><a href="#cb246-1" aria-hidden="true" tabindex="-1"></a><span class="co">#we can plot the xy plot of the fitted values</span></span>
+<span id="cb246-2"><a href="#cb246-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb246-3"><a href="#cb246-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb246-4"><a href="#cb246-4" aria-hidden="true" tabindex="-1"></a>yhat<span class="ot">=</span><span class="fu">predict</span>(model,<span class="at">newdata =</span> TLC_long[,<span class="sc">-</span><span class="dv">4</span>],<span class="at">level=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>)</span>
+<span id="cb246-5"><a href="#cb246-5" aria-hidden="true" tabindex="-1"></a>TLC_long_2<span class="ot">=</span>TLC_long</span>
+<span id="cb246-6"><a href="#cb246-6" aria-hidden="true" tabindex="-1"></a>TLC_long_2<span class="sc">$</span>yhat<span class="ot">=</span>yhat[,<span class="dv">3</span>]</span>
+<span id="cb246-7"><a href="#cb246-7" aria-hidden="true" tabindex="-1"></a>TLC_long_2<span class="sc">$</span>week2<span class="ot">=</span><span class="fu">as.numeric</span>(<span class="fu">as.character</span>(TLC_long_2<span class="sc">$</span>week))</span>
+<span id="cb246-8"><a href="#cb246-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb246-9"><a href="#cb246-9" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week2<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
+<span id="cb246-10"><a href="#cb246-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
+<span id="cb246-11"><a href="#cb246-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>),<span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">60</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 4-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb246"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb246-1"><a href="#cb246-1" aria-hidden="true" tabindex="-1"></a><span class="co"># residuals over time?</span></span>
-<span id="cb246-2"><a href="#cb246-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb246-3"><a href="#cb246-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Residuals vs. Fitted (no patterns)</span></span>
-<span id="cb246-4"><a href="#cb246-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model, <span class="at">main =</span> <span class="st">"Plot of residuals vs. fitted."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb247"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb247-1"><a href="#cb247-1" aria-hidden="true" tabindex="-1"></a><span class="co"># residuals over time?</span></span>
+<span id="cb247-2"><a href="#cb247-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb247-3"><a href="#cb247-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Residuals vs. Fitted (no patterns)</span></span>
+<span id="cb247-4"><a href="#cb247-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model, <span class="at">main =</span> <span class="st">"Plot of residuals vs. fitted."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 4-2.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb247"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb247-1"><a href="#cb247-1" aria-hidden="true" tabindex="-1"></a><span class="co"># QQPlot for normality of errors</span></span>
-<span id="cb247-2"><a href="#cb247-2" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model, <span class="sc">~</span> <span class="fu">residuals</span>(., <span class="at">type=</span><span class="st">"pearson"</span>)) <span class="co"># Some issues... probably</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb248"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb248-1"><a href="#cb248-1" aria-hidden="true" tabindex="-1"></a><span class="co"># QQPlot for normality of errors</span></span>
+<span id="cb248-2"><a href="#cb248-2" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model, <span class="sc">~</span> <span class="fu">residuals</span>(., <span class="at">type=</span><span class="st">"pearson"</span>)) <span class="co"># Some issues... probably</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 4-3.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb248"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb248-1"><a href="#cb248-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plots for the Predicted (BLUPs)</span></span>
-<span id="cb248-2"><a href="#cb248-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nlme<span class="sc">::</span><span class="fu">ranef</span>(model)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb249"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb249-1"><a href="#cb249-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plots for the Predicted (BLUPs)</span></span>
+<span id="cb249-2"><a href="#cb249-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nlme<span class="sc">::</span><span class="fu">ranef</span>(model)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 4-4.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb249"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb249-1"><a href="#cb249-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model, <span class="sc">~</span><span class="fu">ranef</span>(.)) <span class="co"># These look okay!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb250"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb250-1"><a href="#cb250-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model, <span class="sc">~</span><span class="fu">ranef</span>(.)) <span class="co"># These look okay!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 4-5.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb250"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb250-1"><a href="#cb250-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model$residuals</span></span>
-<span id="cb250-2"><a href="#cb250-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb250-3"><a href="#cb250-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb250-4"><a href="#cb250-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Observed vs. Fitted</span></span>
-<span id="cb250-5"><a href="#cb250-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model, W <span class="sc">~</span> <span class="fu">fitted</span>(.), <span class="at">abline =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">main =</span> <span class="st">"Observed vs. Fitted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb251"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb251-1"><a href="#cb251-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model$residuals</span></span>
+<span id="cb251-2"><a href="#cb251-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb251-3"><a href="#cb251-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb251-4"><a href="#cb251-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Observed vs. Fitted</span></span>
+<span id="cb251-5"><a href="#cb251-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model, W <span class="sc">~</span> <span class="fu">fitted</span>(.), <span class="at">abline =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">main =</span> <span class="st">"Observed vs. Fitted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 4-6.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb251"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb251-1"><a href="#cb251-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model, W<span class="sc">~</span> <span class="fu">fitted</span>(.)<span class="sc">|</span>ID, <span class="at">abline =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">main =</span> <span class="st">"Observed vs. Fitted (By Subject)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb252"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb252-1"><a href="#cb252-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model, W<span class="sc">~</span> <span class="fu">fitted</span>(.)<span class="sc">|</span>ID, <span class="at">abline =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">main =</span> <span class="st">"Observed vs. Fitted (By Subject)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 4-7.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb252"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb252-1"><a href="#cb252-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Could also look (e.g.) by treatment, if it existed!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb253"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb253-1"><a href="#cb253-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Could also look (e.g.) by treatment, if it existed!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Some thoughts</p>
 <ul>
@@ -2792,37 +2803,37 @@ sd((Intercept)) 4.33785 5.112717 6.025997
 <li>Everything else looks pretty good</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb253"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb253-1"><a href="#cb253-1" aria-hidden="true" tabindex="-1"></a>id<span class="ot">=</span>TLC_long<span class="sc">$</span>ID[<span class="fu">which</span>(<span class="fu">residuals</span>(model, <span class="at">type=</span><span class="st">"pearson"</span>)<span class="sc">&gt;</span><span class="dv">5</span>)]</span>
-<span id="cb253-2"><a href="#cb253-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb253-3"><a href="#cb253-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(TLC_long[TLC_long<span class="sc">$</span>ID<span class="sc">==</span>id,<span class="sc">-</span><span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb254"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb254-1"><a href="#cb254-1" aria-hidden="true" tabindex="-1"></a>id<span class="ot">=</span>TLC_long<span class="sc">$</span>ID[<span class="fu">which</span>(<span class="fu">residuals</span>(model, <span class="at">type=</span><span class="st">"pearson"</span>)<span class="sc">&gt;</span><span class="dv">5</span>)]</span>
+<span id="cb254-2"><a href="#cb254-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb254-3"><a href="#cb254-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(TLC_long[TLC_long<span class="sc">$</span>ID<span class="sc">==</span>id,<span class="sc">-</span><span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb254"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb254-1"><a href="#cb254-1" aria-hidden="true" tabindex="-1"></a>col<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">1</span>,<span class="dv">400</span>)</span>
-<span id="cb254-2"><a href="#cb254-2" aria-hidden="true" tabindex="-1"></a>col[TLC_long<span class="sc">$</span>ID<span class="sc">==</span>id]<span class="ot">=</span><span class="dv">4</span></span>
-<span id="cb254-3"><a href="#cb254-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb254-4"><a href="#cb254-4" aria-hidden="true" tabindex="-1"></a>lwd<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">1</span>,<span class="dv">400</span>)</span>
-<span id="cb254-5"><a href="#cb254-5" aria-hidden="true" tabindex="-1"></a>lwd[TLC_long<span class="sc">$</span>ID<span class="sc">==</span>id]<span class="ot">=</span><span class="dv">4</span></span>
-<span id="cb254-6"><a href="#cb254-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb254-7"><a href="#cb254-7" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week <span class="sc">|</span> Treatment, </span>
-<span id="cb254-8"><a href="#cb254-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> TLC_long, </span>
-<span id="cb254-9"><a href="#cb254-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">groups =</span> ID, </span>
-<span id="cb254-10"><a href="#cb254-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> col, </span>
-<span id="cb254-11"><a href="#cb254-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>),<span class="at">lwd=</span>lwd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb255"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb255-1"><a href="#cb255-1" aria-hidden="true" tabindex="-1"></a>col<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">1</span>,<span class="dv">400</span>)</span>
+<span id="cb255-2"><a href="#cb255-2" aria-hidden="true" tabindex="-1"></a>col[TLC_long<span class="sc">$</span>ID<span class="sc">==</span>id]<span class="ot">=</span><span class="dv">4</span></span>
+<span id="cb255-3"><a href="#cb255-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb255-4"><a href="#cb255-4" aria-hidden="true" tabindex="-1"></a>lwd<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">1</span>,<span class="dv">400</span>)</span>
+<span id="cb255-5"><a href="#cb255-5" aria-hidden="true" tabindex="-1"></a>lwd[TLC_long<span class="sc">$</span>ID<span class="sc">==</span>id]<span class="ot">=</span><span class="dv">4</span></span>
+<span id="cb255-6"><a href="#cb255-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb255-7"><a href="#cb255-7" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week <span class="sc">|</span> Treatment, </span>
+<span id="cb255-8"><a href="#cb255-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> TLC_long, </span>
+<span id="cb255-9"><a href="#cb255-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">groups =</span> ID, </span>
+<span id="cb255-10"><a href="#cb255-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> col, </span>
+<span id="cb255-11"><a href="#cb255-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>),<span class="at">lwd=</span>lwd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/unnamed-chunk-8-2.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb255"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb255-1"><a href="#cb255-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model, <span class="sc">~</span><span class="fu">ranef</span>(.)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb256"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb256-1"><a href="#cb256-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model, <span class="sc">~</span><span class="fu">ranef</span>(.)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/unnamed-chunk-8-3.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb256"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb256-1"><a href="#cb256-1" aria-hidden="true" tabindex="-1"></a>TLC_long_3<span class="ot">=</span>TLC_long[TLC_long<span class="sc">$</span>ID<span class="sc">!=</span>id,]</span>
-<span id="cb256-2"><a href="#cb256-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb256-3"><a href="#cb256-3" aria-hidden="true" tabindex="-1"></a>model2 <span class="ot">&lt;-</span> nlme<span class="sc">::</span><span class="fu">lme</span>(<span class="at">fixed=</span> W <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span>Treatment<span class="sc">+</span>week<span class="sc">+</span>Treatment<span class="sc">*</span>week,<span class="at">random=</span> <span class="sc">~</span><span class="dv">1</span><span class="sc">|</span>ID, <span class="at">data =</span> TLC_long_3) <span class="co">#to run the model</span></span>
-<span id="cb256-4"><a href="#cb256-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb256-5"><a href="#cb256-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb257"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb257-1"><a href="#cb257-1" aria-hidden="true" tabindex="-1"></a>TLC_long_3<span class="ot">=</span>TLC_long[TLC_long<span class="sc">$</span>ID<span class="sc">!=</span>id,]</span>
+<span id="cb257-2"><a href="#cb257-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb257-3"><a href="#cb257-3" aria-hidden="true" tabindex="-1"></a>model2 <span class="ot">&lt;-</span> nlme<span class="sc">::</span><span class="fu">lme</span>(<span class="at">fixed=</span> W <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span>Treatment<span class="sc">+</span>week<span class="sc">+</span>Treatment<span class="sc">*</span>week,<span class="at">random=</span> <span class="sc">~</span><span class="dv">1</span><span class="sc">|</span>ID, <span class="at">data =</span> TLC_long_3) <span class="co">#to run the model</span></span>
+<span id="cb257-4"><a href="#cb257-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb257-5"><a href="#cb257-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear mixed-effects model fit by REML
   Data: TLC_long 
@@ -2861,7 +2872,7 @@ Standardized Within-Group Residuals:
 Number of Observations: 400
 Number of Groups: 100 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb258"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb258-1"><a href="#cb258-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb259"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb259-1"><a href="#cb259-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear mixed-effects model fit by REML
   Data: TLC_long_3 
@@ -2900,7 +2911,7 @@ Standardized Within-Group Residuals:
 Number of Observations: 396
 Number of Groups: 99 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb260"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb260-1"><a href="#cb260-1" aria-hidden="true" tabindex="-1"></a>nlme<span class="sc">::</span><span class="fu">intervals</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb261"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb261-1"><a href="#cb261-1" aria-hidden="true" tabindex="-1"></a>nlme<span class="sc">::</span><span class="fu">intervals</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Approximate 95% confidence intervals
 
@@ -2924,7 +2935,7 @@ sd((Intercept)) 4.33785 5.112717 6.025997
    lower     est.    upper 
 3.887059 4.214287 4.569062 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb262"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb262-1"><a href="#cb262-1" aria-hidden="true" tabindex="-1"></a>nlme<span class="sc">::</span><span class="fu">intervals</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb263"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb263-1"><a href="#cb263-1" aria-hidden="true" tabindex="-1"></a>nlme<span class="sc">::</span><span class="fu">intervals</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Approximate 95% confidence intervals
 
@@ -2948,14 +2959,14 @@ sd((Intercept)) 4.334069 5.083126 5.961643
    lower     est.    upper 
 3.384769 3.671238 3.981952 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb264"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb264-1"><a href="#cb264-1" aria-hidden="true" tabindex="-1"></a>nlme<span class="sc">::</span><span class="fu">fixef</span>(model)<span class="sc">-</span>nlme<span class="sc">::</span><span class="fu">fixef</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb265"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb265-1"><a href="#cb265-1" aria-hidden="true" tabindex="-1"></a>nlme<span class="sc">::</span><span class="fu">fixef</span>(model)<span class="sc">-</span>nlme<span class="sc">::</span><span class="fu">fixef</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     (Intercept)       TreatmentP            week1            week4 
        0.1461224       -0.1461224       -0.1180000       -0.1668163 
            week6 TreatmentP:week1 TreatmentP:week4 TreatmentP:week6 
        0.7342449        0.1180000        0.1668163       -0.7342449 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb266"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb266-1"><a href="#cb266-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb267"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb267-1"><a href="#cb267-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>               numDF denDF   F-value p-value
 (Intercept)        1   291 1606.9197  &lt;.0001
@@ -2968,11 +2979,11 @@ Treatment:week     3   291   46.2000  &lt;.0001</code></pre>
 <section id="sensitivity-analysis---we-could-have-fit-a-quadratic-or-piece-wise-linear-model-to-the-data." class="level3" data-number="1.6.3">
 <h3 data-number="1.6.3" class="anchored" data-anchor-id="sensitivity-analysis---we-could-have-fit-a-quadratic-or-piece-wise-linear-model-to-the-data."><span class="header-section-number">1.6.3</span> Sensitivity analysis - We could have fit a quadratic or piece-wise linear model to the data.</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb268"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb268-1"><a href="#cb268-1" aria-hidden="true" tabindex="-1"></a>TLC_long_pl<span class="ot">=</span>TLC_long_3</span>
-<span id="cb268-2"><a href="#cb268-2" aria-hidden="true" tabindex="-1"></a>TLC_long_pl<span class="sc">$</span>week<span class="ot">=</span><span class="fu">as.numeric</span>(<span class="fu">as.character</span>(TLC_long_3<span class="sc">$</span>week))<span class="sc">+</span><span class="dv">1</span></span>
-<span id="cb268-3"><a href="#cb268-3" aria-hidden="true" tabindex="-1"></a>TLC_long_pl<span class="sc">$</span>time1<span class="ot">=</span>(TLC_long_pl<span class="sc">$</span>week<span class="sc">&lt;</span><span class="dv">2</span>)<span class="sc">*</span>TLC_long_pl<span class="sc">$</span>week</span>
-<span id="cb268-4"><a href="#cb268-4" aria-hidden="true" tabindex="-1"></a><span class="co"># TLC_long_pl$time2=(TLC_long_pl$week&gt;=3)*(TLC_long_pl$week-TLC_long_pl$week)</span></span>
-<span id="cb268-5"><a href="#cb268-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(TLC_long_pl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb269"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb269-1"><a href="#cb269-1" aria-hidden="true" tabindex="-1"></a>TLC_long_pl<span class="ot">=</span>TLC_long_3</span>
+<span id="cb269-2"><a href="#cb269-2" aria-hidden="true" tabindex="-1"></a>TLC_long_pl<span class="sc">$</span>week<span class="ot">=</span><span class="fu">as.numeric</span>(<span class="fu">as.character</span>(TLC_long_3<span class="sc">$</span>week))<span class="sc">+</span><span class="dv">1</span></span>
+<span id="cb269-3"><a href="#cb269-3" aria-hidden="true" tabindex="-1"></a>TLC_long_pl<span class="sc">$</span>time1<span class="ot">=</span>(TLC_long_pl<span class="sc">$</span>week<span class="sc">&lt;</span><span class="dv">2</span>)<span class="sc">*</span>TLC_long_pl<span class="sc">$</span>week</span>
+<span id="cb269-4"><a href="#cb269-4" aria-hidden="true" tabindex="-1"></a><span class="co"># TLC_long_pl$time2=(TLC_long_pl$week&gt;=3)*(TLC_long_pl$week-TLC_long_pl$week)</span></span>
+<span id="cb269-5"><a href="#cb269-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(TLC_long_pl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    ID Treatment week    W time1
 1.0  1         P    1 30.8     1
@@ -2982,16 +2993,16 @@ Treatment:week     3   291   46.2000  &lt;.0001</code></pre>
 5.0  5         A    1 20.4     1
 6.0  6         A    1 20.4     1</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb270"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb270-1"><a href="#cb270-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_pl  , <span class="at">groups =</span> ID, </span>
-<span id="cb270-2"><a href="#cb270-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
-<span id="cb270-3"><a href="#cb270-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb271"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb271-1"><a href="#cb271-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_pl  , <span class="at">groups =</span> ID, </span>
+<span id="cb271-2"><a href="#cb271-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
+<span id="cb271-3"><a href="#cb271-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb271"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb271-1"><a href="#cb271-1" aria-hidden="true" tabindex="-1"></a>model_pl <span class="ot">&lt;-</span> nlme<span class="sc">::</span><span class="fu">lme</span>(<span class="at">fixed=</span> W <span class="sc">~</span> week<span class="sc">+</span>time1<span class="sc">+</span>Treatment<span class="sc">+</span>Treatment<span class="sc">*</span>week<span class="sc">+</span>Treatment<span class="sc">*</span>time1,<span class="at">random=</span> <span class="sc">~</span><span class="dv">1</span><span class="sc">|</span>ID, <span class="at">data =</span> TLC_long_pl) <span class="co">#to run the model</span></span>
-<span id="cb271-2"><a href="#cb271-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_pl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb272"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb272-1"><a href="#cb272-1" aria-hidden="true" tabindex="-1"></a>model_pl <span class="ot">&lt;-</span> nlme<span class="sc">::</span><span class="fu">lme</span>(<span class="at">fixed=</span> W <span class="sc">~</span> week<span class="sc">+</span>time1<span class="sc">+</span>Treatment<span class="sc">+</span>Treatment<span class="sc">*</span>week<span class="sc">+</span>Treatment<span class="sc">*</span>time1,<span class="at">random=</span> <span class="sc">~</span><span class="dv">1</span><span class="sc">|</span>ID, <span class="at">data =</span> TLC_long_pl) <span class="co">#to run the model</span></span>
+<span id="cb272-2"><a href="#cb272-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_pl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear mixed-effects model fit by REML
   Data: TLC_long_pl 
@@ -3026,7 +3037,7 @@ Standardized Within-Group Residuals:
 Number of Observations: 396
 Number of Groups: 99 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb273"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb273-1"><a href="#cb273-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb274"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb274-1"><a href="#cb274-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear mixed-effects model fit by REML
   Data: TLC_long_3 
@@ -3067,85 +3078,85 @@ Number of Groups: 99 </code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb275"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb275-1"><a href="#cb275-1" aria-hidden="true" tabindex="-1"></a><span class="co">#we can plot the xy plot of the fitted values</span></span>
-<span id="cb275-2"><a href="#cb275-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb275-3"><a href="#cb275-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb275-4"><a href="#cb275-4" aria-hidden="true" tabindex="-1"></a>yhat<span class="ot">=</span><span class="fu">predict</span>(model_pl,<span class="at">newdata =</span> TLC_long_pl[,<span class="sc">-</span><span class="dv">4</span>],<span class="at">level=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>)</span>
-<span id="cb275-5"><a href="#cb275-5" aria-hidden="true" tabindex="-1"></a>TLC_long_4<span class="ot">=</span>TLC_long_pl</span>
-<span id="cb275-6"><a href="#cb275-6" aria-hidden="true" tabindex="-1"></a>TLC_long_4<span class="sc">$</span>yhat<span class="ot">=</span>yhat[,<span class="dv">3</span>]</span>
-<span id="cb275-7"><a href="#cb275-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb275-8"><a href="#cb275-8" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_4  , <span class="at">groups =</span> ID, </span>
-<span id="cb275-9"><a href="#cb275-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
-<span id="cb275-10"><a href="#cb275-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb276"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb276-1"><a href="#cb276-1" aria-hidden="true" tabindex="-1"></a><span class="co">#we can plot the xy plot of the fitted values</span></span>
+<span id="cb276-2"><a href="#cb276-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb276-3"><a href="#cb276-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb276-4"><a href="#cb276-4" aria-hidden="true" tabindex="-1"></a>yhat<span class="ot">=</span><span class="fu">predict</span>(model_pl,<span class="at">newdata =</span> TLC_long_pl[,<span class="sc">-</span><span class="dv">4</span>],<span class="at">level=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>)</span>
+<span id="cb276-5"><a href="#cb276-5" aria-hidden="true" tabindex="-1"></a>TLC_long_4<span class="ot">=</span>TLC_long_pl</span>
+<span id="cb276-6"><a href="#cb276-6" aria-hidden="true" tabindex="-1"></a>TLC_long_4<span class="sc">$</span>yhat<span class="ot">=</span>yhat[,<span class="dv">3</span>]</span>
+<span id="cb276-7"><a href="#cb276-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb276-8"><a href="#cb276-8" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_4  , <span class="at">groups =</span> ID, </span>
+<span id="cb276-9"><a href="#cb276-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
+<span id="cb276-10"><a href="#cb276-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 5-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb276"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb276-1"><a href="#cb276-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
-<span id="cb276-2"><a href="#cb276-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
-<span id="cb276-3"><a href="#cb276-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb277"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb277-1"><a href="#cb277-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
+<span id="cb277-2"><a href="#cb277-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
+<span id="cb277-3"><a href="#cb277-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 5-2.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb277"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb277-1"><a href="#cb277-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
-<span id="cb277-2"><a href="#cb277-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
-<span id="cb277-3"><a href="#cb277-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb278"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb278-1"><a href="#cb278-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
+<span id="cb278-2"><a href="#cb278-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
+<span id="cb278-3"><a href="#cb278-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 5-3.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb278"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb278-1"><a href="#cb278-1" aria-hidden="true" tabindex="-1"></a><span class="co"># residuals over time?</span></span>
-<span id="cb278-2"><a href="#cb278-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb278-3"><a href="#cb278-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Residuals vs. Fitted (no patterns)</span></span>
-<span id="cb278-4"><a href="#cb278-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_pl, <span class="at">main =</span> <span class="st">"Plot of residuals vs. fitted."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb279"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb279-1"><a href="#cb279-1" aria-hidden="true" tabindex="-1"></a><span class="co"># residuals over time?</span></span>
+<span id="cb279-2"><a href="#cb279-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb279-3"><a href="#cb279-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Residuals vs. Fitted (no patterns)</span></span>
+<span id="cb279-4"><a href="#cb279-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_pl, <span class="at">main =</span> <span class="st">"Plot of residuals vs. fitted."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 6-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb279"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb279-1"><a href="#cb279-1" aria-hidden="true" tabindex="-1"></a><span class="co"># QQPlot for normality of errors</span></span>
-<span id="cb279-2"><a href="#cb279-2" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model_pl, <span class="sc">~</span> <span class="fu">residuals</span>(., <span class="at">type=</span><span class="st">"pearson"</span>)) <span class="co"># Some issues... probably</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb280"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb280-1"><a href="#cb280-1" aria-hidden="true" tabindex="-1"></a><span class="co"># QQPlot for normality of errors</span></span>
+<span id="cb280-2"><a href="#cb280-2" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model_pl, <span class="sc">~</span> <span class="fu">residuals</span>(., <span class="at">type=</span><span class="st">"pearson"</span>)) <span class="co"># Some issues... probably</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 6-2.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb280"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb280-1"><a href="#cb280-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plots for the Predicted (BLUPs)</span></span>
-<span id="cb280-2"><a href="#cb280-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nlme<span class="sc">::</span><span class="fu">ranef</span>(model_pl)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb281"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb281-1"><a href="#cb281-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plots for the Predicted (BLUPs)</span></span>
+<span id="cb281-2"><a href="#cb281-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nlme<span class="sc">::</span><span class="fu">ranef</span>(model_pl)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 6-3.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb281"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb281-1"><a href="#cb281-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model_pl, <span class="sc">~</span><span class="fu">ranef</span>(.)) <span class="co"># These look okay!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb282"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb282-1"><a href="#cb282-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(model_pl, <span class="sc">~</span><span class="fu">ranef</span>(.)) <span class="co"># These look okay!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 6-4.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb282"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb282-1"><a href="#cb282-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model$residuals</span></span>
-<span id="cb282-2"><a href="#cb282-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb282-3"><a href="#cb282-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb282-4"><a href="#cb282-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Observed vs. Fitted</span></span>
-<span id="cb282-5"><a href="#cb282-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_pl, W <span class="sc">~</span> <span class="fu">fitted</span>(.), <span class="at">abline =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">main =</span> <span class="st">"Observed vs. Fitted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb283"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb283-1"><a href="#cb283-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model$residuals</span></span>
+<span id="cb283-2"><a href="#cb283-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb283-3"><a href="#cb283-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb283-4"><a href="#cb283-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Observed vs. Fitted</span></span>
+<span id="cb283-5"><a href="#cb283-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model_pl, W <span class="sc">~</span> <span class="fu">fitted</span>(.), <span class="at">abline =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">main =</span> <span class="st">"Observed vs. Fitted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 6-5.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb283"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb283-1"><a href="#cb283-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Could also look (e.g.) by treatment, if it existed!</span></span>
-<span id="cb283-2"><a href="#cb283-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-3"><a href="#cb283-3" aria-hidden="true" tabindex="-1"></a>residuals<span class="ot">=</span><span class="fu">residuals</span>(model_pl, <span class="at">type=</span><span class="st">"pearson"</span>)</span>
-<span id="cb283-4"><a href="#cb283-4" aria-hidden="true" tabindex="-1"></a>re<span class="ot">=</span>nlme<span class="sc">::</span><span class="fu">ranef</span>(model_pl)</span>
-<span id="cb283-5"><a href="#cb283-5" aria-hidden="true" tabindex="-1"></a>re2<span class="ot">=</span><span class="fu">rep</span>(re<span class="sc">$</span><span class="st">`</span><span class="at">(Intercept)</span><span class="st">`</span> ,<span class="at">each=</span><span class="dv">4</span>)</span>
-<span id="cb283-6"><a href="#cb283-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb283-7"><a href="#cb283-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals,re2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb284"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb284-1"><a href="#cb284-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Could also look (e.g.) by treatment, if it existed!</span></span>
+<span id="cb284-2"><a href="#cb284-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb284-3"><a href="#cb284-3" aria-hidden="true" tabindex="-1"></a>residuals<span class="ot">=</span><span class="fu">residuals</span>(model_pl, <span class="at">type=</span><span class="st">"pearson"</span>)</span>
+<span id="cb284-4"><a href="#cb284-4" aria-hidden="true" tabindex="-1"></a>re<span class="ot">=</span>nlme<span class="sc">::</span><span class="fu">ranef</span>(model_pl)</span>
+<span id="cb284-5"><a href="#cb284-5" aria-hidden="true" tabindex="-1"></a>re2<span class="ot">=</span><span class="fu">rep</span>(re<span class="sc">$</span><span class="st">`</span><span class="at">(Intercept)</span><span class="st">`</span> ,<span class="at">each=</span><span class="dv">4</span>)</span>
+<span id="cb284-6"><a href="#cb284-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb284-7"><a href="#cb284-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals,re2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 6-6.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb284"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb284-1"><a href="#cb284-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(residuals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb285"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb285-1"><a href="#cb285-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(residuals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 396</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb286"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb286-1"><a href="#cb286-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(re)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb287"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb287-1"><a href="#cb287-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(re)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 1</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb288"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb288-1"><a href="#cb288-1" aria-hidden="true" tabindex="-1"></a>TLC_long_pl<span class="sc">$</span>weeksq<span class="ot">=</span> TLC_long_pl<span class="sc">$</span>week<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb288-2"><a href="#cb288-2" aria-hidden="true" tabindex="-1"></a>model_q <span class="ot">&lt;-</span> nlme<span class="sc">::</span><span class="fu">lme</span>(<span class="at">fixed=</span> W <span class="sc">~</span> week<span class="sc">+</span>weeksq<span class="sc">+</span>Treatment<span class="sc">+</span>week<span class="sc">*</span>Treatment<span class="sc">+</span>weeksq<span class="sc">*</span>Treatment,<span class="at">random=</span> <span class="sc">~</span><span class="dv">1</span><span class="sc">|</span>ID, <span class="at">data =</span> TLC_long_pl) <span class="co">#to run the model</span></span>
-<span id="cb288-3"><a href="#cb288-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb289"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb289-1"><a href="#cb289-1" aria-hidden="true" tabindex="-1"></a>TLC_long_pl<span class="sc">$</span>weeksq<span class="ot">=</span> TLC_long_pl<span class="sc">$</span>week<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb289-2"><a href="#cb289-2" aria-hidden="true" tabindex="-1"></a>model_q <span class="ot">&lt;-</span> nlme<span class="sc">::</span><span class="fu">lme</span>(<span class="at">fixed=</span> W <span class="sc">~</span> week<span class="sc">+</span>weeksq<span class="sc">+</span>Treatment<span class="sc">+</span>week<span class="sc">*</span>Treatment<span class="sc">+</span>weeksq<span class="sc">*</span>Treatment,<span class="at">random=</span> <span class="sc">~</span><span class="dv">1</span><span class="sc">|</span>ID, <span class="at">data =</span> TLC_long_pl) <span class="co">#to run the model</span></span>
+<span id="cb289-3"><a href="#cb289-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear mixed-effects model fit by REML
   Data: TLC_long_pl 
@@ -3180,8 +3191,8 @@ Standardized Within-Group Residuals:
 Number of Observations: 396
 Number of Groups: 99 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb290"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb290-1"><a href="#cb290-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_q &lt;- nlme::lme(fixed= W ~ week+weeksq+Treatment+weeksq*Treatment,random= ~1|ID, data = TLC_long_pl) #to run the model</span></span>
-<span id="cb290-2"><a href="#cb290-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb291"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb291-1"><a href="#cb291-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_q &lt;- nlme::lme(fixed= W ~ week+weeksq+Treatment+weeksq*Treatment,random= ~1|ID, data = TLC_long_pl) #to run the model</span></span>
+<span id="cb291-2"><a href="#cb291-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear mixed-effects model fit by REML
   Data: TLC_long_pl 
@@ -3216,7 +3227,7 @@ Standardized Within-Group Residuals:
 Number of Observations: 396
 Number of Groups: 99 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb292"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb292-1"><a href="#cb292-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb293"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb293-1"><a href="#cb293-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear mixed-effects model fit by REML
   Data: TLC_long_3 
@@ -3257,36 +3268,36 @@ Number of Groups: 99 </code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb294"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb294-1"><a href="#cb294-1" aria-hidden="true" tabindex="-1"></a><span class="co">#we can plot the xy plot of the fitted values</span></span>
-<span id="cb294-2"><a href="#cb294-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb294-3"><a href="#cb294-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb294-4"><a href="#cb294-4" aria-hidden="true" tabindex="-1"></a>yhat<span class="ot">=</span><span class="fu">predict</span>(model_q,<span class="at">newdata =</span> TLC_long_pl[,<span class="sc">-</span><span class="dv">4</span>],<span class="at">level=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>)</span>
-<span id="cb294-5"><a href="#cb294-5" aria-hidden="true" tabindex="-1"></a>TLC_long_5<span class="ot">=</span>TLC_long_pl</span>
-<span id="cb294-6"><a href="#cb294-6" aria-hidden="true" tabindex="-1"></a>TLC_long_5<span class="sc">$</span>yhat<span class="ot">=</span>yhat[,<span class="dv">3</span>]</span>
-<span id="cb294-7"><a href="#cb294-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb294-8"><a href="#cb294-8" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
-<span id="cb294-9"><a href="#cb294-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb294-10"><a href="#cb294-10" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_5  , <span class="at">groups =</span> ID, </span>
-<span id="cb294-11"><a href="#cb294-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
-<span id="cb294-12"><a href="#cb294-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb295"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb295-1"><a href="#cb295-1" aria-hidden="true" tabindex="-1"></a><span class="co">#we can plot the xy plot of the fitted values</span></span>
+<span id="cb295-2"><a href="#cb295-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-3"><a href="#cb295-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-4"><a href="#cb295-4" aria-hidden="true" tabindex="-1"></a>yhat<span class="ot">=</span><span class="fu">predict</span>(model_q,<span class="at">newdata =</span> TLC_long_pl[,<span class="sc">-</span><span class="dv">4</span>],<span class="at">level=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>)</span>
+<span id="cb295-5"><a href="#cb295-5" aria-hidden="true" tabindex="-1"></a>TLC_long_5<span class="ot">=</span>TLC_long_pl</span>
+<span id="cb295-6"><a href="#cb295-6" aria-hidden="true" tabindex="-1"></a>TLC_long_5<span class="sc">$</span>yhat<span class="ot">=</span>yhat[,<span class="dv">3</span>]</span>
+<span id="cb295-7"><a href="#cb295-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-8"><a href="#cb295-8" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb295-9"><a href="#cb295-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-10"><a href="#cb295-10" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_5  , <span class="at">groups =</span> ID, </span>
+<span id="cb295-11"><a href="#cb295-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
+<span id="cb295-12"><a href="#cb295-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 7-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb295"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb295-1"><a href="#cb295-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_4  , <span class="at">groups =</span> ID, </span>
-<span id="cb295-2"><a href="#cb295-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
-<span id="cb295-3"><a href="#cb295-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="mixed_models_files/figure-html/GOF 7-2.png" class="img-fluid" width="672"></p>
-</div>
-<div class="sourceCode cell-code" id="cb296"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb296-1"><a href="#cb296-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
+<div class="sourceCode cell-code" id="cb296"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb296-1"><a href="#cb296-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_4  , <span class="at">groups =</span> ID, </span>
 <span id="cb296-2"><a href="#cb296-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
 <span id="cb296-3"><a href="#cb296-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="mixed_models_files/figure-html/GOF 7-3.png" class="img-fluid" width="672"></p>
+<p><img src="mixed_models_files/figure-html/GOF 7-2.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb297"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb297-1"><a href="#cb297-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
+<div class="sourceCode cell-code" id="cb297"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb297-1"><a href="#cb297-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(yhat <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
 <span id="cb297-2"><a href="#cb297-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
 <span id="cb297-3"><a href="#cb297-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixed_models_files/figure-html/GOF 7-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb298"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb298-1"><a href="#cb298-1" aria-hidden="true" tabindex="-1"></a>lattice<span class="sc">::</span><span class="fu">xyplot</span>(W <span class="sc">~</span> week<span class="sc">|</span>Treatment,<span class="at">data=</span>TLC_long_2  , <span class="at">groups =</span> ID, </span>
+<span id="cb298-2"><a href="#cb298-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="st">'black'</span>, </span>
+<span id="cb298-3"><a href="#cb298-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="fu">c</span>(<span class="st">'l'</span>, <span class="st">'p'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixed_models_files/figure-html/GOF 7-4.png" class="img-fluid" width="672"></p>
 </div>
