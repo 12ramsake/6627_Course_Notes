@@ -83,7 +83,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./references.html" rel="next">
+<link href="./glmm.html" rel="next">
 <link href="./index.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -167,6 +167,18 @@ div.csl-indent {
   <div class="sidebar-item-container"> 
   <a href="./mixed_models.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Mixed Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./glmm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Generalized linear mixed models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./permutation_tests.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Permutation Tests</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -1872,7 +1884,7 @@ class "lm", updated model is of class "lme"</code></pre>
 <span id="cb136-27"><a href="#cb136-27" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb136-28"><a href="#cb136-28" aria-hidden="true" tabindex="-1"></a>pvalue<span class="ot">=</span><span class="fu">mean</span>(observed<span class="sc">&lt;=</span>ts); pvalue</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.86</code></pre>
+<pre><code>[1] 0.89</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb138"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb138-1"><a href="#cb138-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(ts)</span>
 <span id="cb138-2"><a href="#cb138-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>observed); observed</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2171,7 +2183,7 @@ class "lm", updated model is of class "lme"</code></pre>
 <span id="cb180-28"><a href="#cb180-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb180-29"><a href="#cb180-29" aria-hidden="true" tabindex="-1"></a>pvalue<span class="ot">=</span><span class="fu">mean</span>(observed<span class="sc">&lt;=</span>ts); pvalue</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0</code></pre>
+<pre><code>[1] 0.01</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb182"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb182-1"><a href="#cb182-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(ts,<span class="at">xlim=</span><span class="fu">c</span>(<span class="fu">min</span>(ts),<span class="dv">9</span>))</span>
 <span id="cb182-2"><a href="#cb182-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>observed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -3577,8 +3589,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./references.html" class="pagination-link">
-        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./glmm.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Generalized linear mixed models</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
